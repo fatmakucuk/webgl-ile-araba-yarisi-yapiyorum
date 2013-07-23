@@ -63,9 +63,16 @@
     <Content Include="libs\RequestAnimationFrame.js" />
     <Content Include="libs\three.min.js" />
     <Content Include="libs\threex.KeyboardState.js" />
+    <Content Include="models\CarBody.js" />
+    <Content Include="models\CarWheel.js" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="resources\CarBody.blend" />
+    <Content Include="resources\CarWheel.blend" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
