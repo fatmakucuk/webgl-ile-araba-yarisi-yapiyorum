@@ -58,6 +58,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Index.html" />
+    <Content Include="js\Car.js" />
+    <Content Include="js\Ground.js" />
+    <Content Include="js\PerspectiveCamera.js" />
+    <Content Include="js\Scene.js" />
+    <Content Include="js\SkyBox.js" />
+    <Content Include="js\Light.js" />
     <Content Include="libs\can.jquery.min.js" />
     <Content Include="libs\jquery.min.js" />
     <Content Include="libs\RequestAnimationFrame.js" />
