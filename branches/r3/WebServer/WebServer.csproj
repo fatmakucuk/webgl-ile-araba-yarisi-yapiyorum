@@ -67,6 +67,7 @@
     <Content Include="libs\can.jquery.min.js" />
     <Content Include="libs\jquery.min.js" />
     <Content Include="libs\RequestAnimationFrame.js" />
+    <Content Include="libs\Stats.js" />
     <Content Include="libs\three.min.js" />
     <Content Include="libs\threex.KeyboardState.js" />
     <Content Include="models\CarBody.js" />
