@@ -18,23 +18,35 @@
         container.css("overflow", "hidden");
         container.css("zindex", "2");
 
-        body.append("<span id='SpeedText' />");
+        body.append("<span id='Tachometer' />");
+
+        var Tachometer = $("#Tachometer");
+
+        Tachometer.css("position", "absolute");
+        Tachometer.css("left", (window.innerWidth - 120) + "px");
+        Tachometer.css("top", "20px");
+        Tachometer.css("zindex", "1");
+        Tachometer.css("color", "#ff00ff");
+
+        body.append("<span id='Speedometer' />");
         
-        var speedText = $("#SpeedText");
+        var Speedometer = $("#Speedometer");
 
-        speedText.css("position", "absolute");
-        speedText.css("left", "100px");
-        speedText.css("top", "100px");
-        speedText.css("zindex", "1");
+        Speedometer.css("position", "absolute");
+        Speedometer.css("left", (window.innerWidth - 120) + "px");
+        Speedometer.css("top", "50px");
+        Speedometer.css("zindex", "1");
+        Speedometer.css("color", "#ff00ff");
 
-        body.append("<span id='ShiftText' />");
+        body.append("<span id='ShiftIndicator' />");
 
-        var shiftText = $("#ShiftText");
+        var ShiftIndicator = $("#ShiftIndicator");
 
-        shiftText.css("position", "absolute");
-        shiftText.css("left", "100px");
-        shiftText.css("top", "150px");
-        shiftText.css("zindex", "1");
+        ShiftIndicator.css("position", "absolute");
+        ShiftIndicator.css("left", (window.innerWidth - 120) + "px");
+        ShiftIndicator.css("top", "80px");
+        ShiftIndicator.css("zindex", "1");
+        ShiftIndicator.css("color", "#ff00ff");
 
         body.append("<div id='Stats' />");
 

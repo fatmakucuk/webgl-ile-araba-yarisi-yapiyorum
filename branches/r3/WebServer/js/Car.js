@@ -1,48 +1,23 @@
 ﻿can.Construct("CarGame.Car", {}, {
     Element: null,
+
+    DIRECTION_FORWARD: 1,
+    DIRECTION_NONE: 0,
+    DIRECTION_BACKWARD: -1,
+
     Shift: 1,
     Speed: 0,
-    ShiftSpecs: [{ Shift: "R", Min: -50, Max: 1 },
-                 { Shift: "1", Min: 0, Max: 49 },
-                 { Shift: "2", Min: 30, Max: 109 },
-                 { Shift: "3", Min: 90, Max: 159 },
-                 { Shift: "4", Min: 140, Max: 209 },
-                 { Shift: "5", Min: 190, Max: 259 },
-                 { Shift: "6", Min: 240, Max: 340 }],
-    AccelerationSpecs: [{ Min: 0, Max: 10, Acceleration: 50 },
-                        { Min: 10, Max: 20, Acceleration: 25 },
-                        { Min: 20, Max: 30, Acceleration: 14.29 },
-                        { Min: 30, Max: 40, Acceleration: 10 },
-                        { Min: 40, Max: 50, Acceleration: 7.69 },
-                        { Min: 50, Max: 60, Acceleration: 6.25 },
-                        { Min: 60, Max: 70, Acceleration: 5 },
-                        { Min: 70, Max: 80, Acceleration: 4.17 },
-                        { Min: 80, Max: 90, Acceleration: 3.57 },
-                        { Min: 90, Max: 100, Acceleration: 3.03 },
-                        { Min: 100, Max: 110, Acceleration: 2.63 },
-                        { Min: 110, Max: 120, Acceleration: 2.27 },
-                        { Min: 120, Max: 130, Acceleration: 2 },
-                        { Min: 130, Max: 140, Acceleration: 1.75 },
-                        { Min: 140, Max: 150, Acceleration: 1.56 },
-                        { Min: 150, Max: 160, Acceleration: 1.37 },
-                        { Min: 160, Max: 170, Acceleration: 1.2 },
-                        { Min: 170, Max: 180, Acceleration: 1.06 },
-                        { Min: 180, Max: 190, Acceleration: 0.94 },
-                        { Min: 190, Max: 200, Acceleration: 0.84 },
-                        { Min: 200, Max: 210, Acceleration: 0.75 },
-                        { Min: 210, Max: 220, Acceleration: 0.66 },
-                        { Min: 220, Max: 230, Acceleration: 0.58 },
-                        { Min: 230, Max: 240, Acceleration: 0.52 },
-                        { Min: 240, Max: 250, Acceleration: 0.45 },
-                        { Min: 250, Max: 260, Acceleration: 0.4 },
-                        { Min: 260, Max: 270, Acceleration: 0.35 },
-                        { Min: 270, Max: 280, Acceleration: 0.31 },
-                        { Min: 280, Max: 290, Acceleration: 0.27 },
-                        { Min: 290, Max: 300, Acceleration: 0.24 },
-                        { Min: 300, Max: 310, Acceleration: 0.21 },
-                        { Min: 310, Max: 320, Acceleration: 0.19 },
-                        { Min: 320, Max: 330, Acceleration: 0.16 },
-                        { Min: 330, Max: 340, Acceleration: 0.14 }],
+    EngineCycle: 0,
+    MaxCycle: 8000,
+
+    ShiftSpecs: [{ Shift: "R", ShiftRate: 150, UpCycle: null, AfterUpCycle: null, DownCycle: null, AfterDownCycle: null },
+                 { Shift: "1", ShiftRate: 150, UpCycle: 7000, AfterUpCycle: 3884, DownCycle: null, AfterDownCycle: null },
+                 { Shift: "2", ShiftRate: 83.2202, UpCycle: 7000, AfterUpCycle: 4196, DownCycle: 3000, AfterDownCycle: 5407 },
+                 { Shift: "3", ShiftRate: 49.8805, UpCycle: 6500, AfterUpCycle: 4444, DownCycle: 3000, AfterDownCycle: 5005 },
+                 { Shift: "4", ShiftRate: 34.1005, UpCycle: 6500, AfterUpCycle: 5165, DownCycle: 3500, AfterDownCycle: 5120 },
+                 { Shift: "5", ShiftRate: 27.0965, UpCycle: 6500, AfterUpCycle: 5644, DownCycle: 3500, AfterDownCycle: 4405 },
+                 { Shift: "6", ShiftRate: 23.5294, UpCycle: null, AfterUpCycle: null, DownCycle: 4000, AfterDownCycle: 4606 }],
+
     init: function ()
     {
         this.Element = new THREE.Object3D();
@@ -53,7 +28,7 @@
 
         jsonLoader.load("models/CarWheel.js", this.CarWheelModelLoaded);
 
-        this.Element.position.set(0, 1.07, 0);
+        this.Element.position.set(10, 1.07, 0);
 
         // Açılışta şık dursun diye arabayı 45 derece çeviriyoruz
         this.Element.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 4);
@@ -108,10 +83,11 @@
     },
     Animate: function (keyboardState, deltaTime)
     {
-        this.HandleKeyboard(keyboardState, deltaTime);
-
         this.CheckShiftChange();
 
+        this.HandleKeyboard(keyboardState, deltaTime);
+
+        this.Speed = this.CalculateSpeed(this.Shift, this.EngineCycle);
 
         if (this.Speed > 0)
         {
@@ -121,52 +97,63 @@
         {
             this.Backward(deltaTime);
         }
+        else
+        {
+            // Araba duruyorken vitesi boşa alıyoruz ki, baskı balataları erimesin
+            this.Shift = 0;
+        }
 
-        $("#SpeedText").text(Math.round(this.Speed, 2));
-        $("#ShiftText").text(this.Shift);
+        this.WriteCycle();
+        this.WriteSpeed();
+        this.WriteShift();
     },
     HandleKeyboard: function (keyboardState, deltaTime)
     {
+        var direction = this.FindDirection();
+
+        if (direction != this.DIRECTION_NONE && !keyboardState.pressed("up") && !keyboardState.pressed("down"))
+        {
+            this.SlowDown(deltaTime, direction);
+        }
+
         if (keyboardState.pressed("up"))
         {
-            if (this.Speed > 0)
+            if (direction == this.DIRECTION_FORWARD)
             {
-                this.Speed += this.CalculateAcceleration(this.Shift, this.Speed, false) * deltaTime * 7;
+                this.Accelerate(deltaTime, direction);
+            }
+            else if (direction == this.DIRECTION_NONE)
+            {
+                this.Shift = 1;
+
+                this.Accelerate(deltaTime, direction);
             }
             else
             {
-                this.Speed += this.CalculateAcceleration(this.Shift, this.Speed, true) * deltaTime * 7;
+                this.Break(deltaTime, direction);
             }
         }
 
         if (keyboardState.pressed("down"))
         {
-            if (this.Speed < 0)
+            if (direction == this.DIRECTION_BACKWARD)
             {
-                this.Speed -= this.CalculateAcceleration(this.Shift, this.Speed, false) * deltaTime * 7;
+                this.Accelerate(deltaTime, direction);
+            }
+            else if (direction == this.DIRECTION_NONE)
+            {
+                this.Shift = -1;
+
+                this.Accelerate(deltaTime, direction);
             }
             else
             {
-                this.Speed -= this.CalculateAcceleration(this.Shift, this.Speed, true) * deltaTime * 7;
+                this.Break(deltaTime, direction);
             }
         }
 
-        if (this.Speed != 0)
+        if (direction != this.DIRECTION_NONE)
         {
-            if (!keyboardState.pressed("up") && !keyboardState.pressed("down"))
-            {
-                // idle
-
-                if (this.Speed > 0)
-                {
-                    this.Speed -= 0.25;
-                }
-                else
-                {
-                    this.Speed += 0.25;
-                }
-            }
-
             if (keyboardState.pressed("left"))
             {
                 this.TurnLeft();
@@ -176,6 +163,93 @@
             {
                 this.TurnRight();
             }
+        }
+    },
+    Accelerate: function (deltaTime, direction)
+    {
+        if (this.EngineCycle < this.MaxCycle)
+        {
+            if (this.Shift == -1)
+            {
+                this.EngineCycle += Math.round((10 * this.ShiftSpecs[0].ShiftRate * this.ShiftSpecs[0].ShiftRate * this.ShiftSpecs[0].ShiftRate / (300 + this.EngineCycle)) * deltaTime);
+            }
+            else
+            {
+                this.EngineCycle += Math.round((5000 * this.ShiftSpecs[this.Shift].ShiftRate * this.ShiftSpecs[this.Shift].ShiftRate / (2000 + this.EngineCycle * this.Shift)) * deltaTime);
+            }
+        }
+        else
+        {
+            this.EngineCycle = this.MaxCycle;
+        }
+    },
+    Break: function (deltaTime, direction)
+    {
+        if (this.EngineCycle > 0)
+        {
+            this.EngineCycle -= Math.round(7000 * deltaTime);
+        }
+    },
+    SlowDown: function (deltaTime, direction)
+    {
+        if (this.EngineCycle > 0)
+        {
+            this.EngineCycle -= Math.round(700 * deltaTime);
+        }
+    },
+    CheckShiftChange: function ()
+    {
+        // Sadece ileri viteslerde, vites geçiş kontrolü var
+        if (this.Shift > 0)
+        {
+            if (this.ShiftSpecs[this.Shift].UpCycle != null && this.EngineCycle >= this.ShiftSpecs[this.Shift].UpCycle)
+            {
+                this.EngineCycle = this.ShiftSpecs[this.Shift].AfterUpCycle;
+
+                this.Shift++;
+            }
+            else if (this.ShiftSpecs[this.Shift].DownCycle != null && this.EngineCycle <= this.ShiftSpecs[this.Shift].DownCycle)
+            {
+                this.EngineCycle = this.ShiftSpecs[this.Shift].AfterDownCycle;
+
+                this.Shift--;
+            }
+        }
+    },
+    CalculateSpeed: function (shift, engineCycle)
+    {
+        if (shift == 0)
+        {
+            return 0;
+        }
+
+        var multiplier = 0;
+
+        switch (shift)
+        {
+            case -1:
+                multiplier = -1 * this.ShiftSpecs[0].ShiftRate;
+                break;
+            default:
+                multiplier = this.ShiftSpecs[shift].ShiftRate;
+                break;
+        }
+
+        return Math.round(engineCycle / multiplier);
+    },
+    FindDirection: function ()
+    {
+        if (this.Speed > 0)
+        {
+            return this.DIRECTION_FORWARD;
+        }
+        else if (this.Speed < 0)
+        {
+            return this.DIRECTION_BACKWARD;
+        }
+        else
+        {
+            return this.DIRECTION_NONE;
         }
     },
     Forward: function (deltaTime)
@@ -210,48 +284,31 @@
 
         this.Element.rotateOnAxis(new THREE.Vector3(0, 1, 0), angle);
     },
-    CheckShiftChange: function ()
+    WriteCycle: function ()
     {
-        if (this.Speed > this.ShiftSpecs[this.Shift].Max && this.Shift != 6)
-        {
-            // Güncel hız, güncel vitesin maksimum hızından fazlaysa ve vites zaten 6. viteste değilse, vites arttırımı gerekiyor
-            this.Shift++;
-        }
-        else if (this.Speed < this.ShiftSpecs[this.Shift].Min && this.Shift != 0)
-        {
-            // Güncel hız, güncel vitesin minimum hızından azsa ve vites zaten geri viteste değilse, vites azaltımı gerekiyor
-            this.Shift--;
-        }
+        $("#Tachometer").text("Cycle : " + this.EngineCycle + " rpm");
     },
-    CalculateAcceleration: function (shift, speed, forBreak)
+    WriteSpeed: function ()
     {
-        if (forBreak)
+        $("#Speedometer").text("Speed : " + this.Speed + " km/h");
+    },
+    WriteShift: function ()
+    {
+        var text;
+
+        if (this.Shift == -1)
         {
-            return 10;
+            text = "R";
+        }
+        else if (this.Shift == 0)
+        {
+            text = "N";
         }
         else
         {
-            if (shift == 0)
-            {
-                if (this.Speed > -50)
-                {
-                    return 5;
-                }
-                else
-                {
-                    return -1;
-                }
-            }
-
-            for (var i = 0; i < this.AccelerationSpecs.length; i++)
-            {
-                if (speed >= this.AccelerationSpecs[i].Min && speed <= this.AccelerationSpecs[i].Max)
-                {
-                    return this.AccelerationSpecs[i].Acceleration;
-                }
-            }
-
-            return 0;
+            text = this.Shift.toString();
         }
+
+        $("#ShiftIndicator").text("Shift : " + text);
     }
 });
