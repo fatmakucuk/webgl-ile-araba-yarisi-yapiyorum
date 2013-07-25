@@ -7,6 +7,7 @@
 <script src="libs/three.min.js"></script>
 <script src="libs/threex.KeyboardState.js"></script>
 <script src="libs/RequestAnimationFrame.js"></script>
+<script src="libs/Stats.js"></script>
 <script src="js/Scene.js"></script>
 <script src="js/PerspectiveCamera.js"></script>
 <script src="js/Light.js"></script>
@@ -15,12 +16,20 @@
 <script src="js/Car.js"></script>
 <script>
 
-    var scene, perspectiveCamera, keyboardState, car, skyBox, ground, light;
+    var stats, scene, perspectiveCamera, keyboardState, car, skyBox, ground, light, clock;
 
     $(function ()
     {
+        
+        // Animasyonlar arası geçen süreyi hesaplayacak nesnemizi tanımlıyoruz
+        clock = new THREE.Clock();
+
+        // FPS istatistiklerini tutmaktan sorumlu nesnemizi tanımlıyoruz
+        stats = new Stats();
+
         // Sahnemizi hazırlıyoruz
-        scene = new CarGame.Scene();
+        scene = new CarGame.Scene(stats);
+
 
         // Perspektif kameramızı hazırlıyoruz
         perspectiveCamera = new CarGame.PerspectiveCamera();
@@ -60,11 +69,16 @@
 
     function Animate()
     {
+        var deltaTime = clock.getDelta();
+        
         // Arabamıza, klavyenin durumuna göre hizzaya gelmesini söylüyoruz
-        car.HandleKeyboard(keyboardState);
+        car.Animate(keyboardState, deltaTime);
 
         // Perspektif kameranın gözünden sahnemizi Render ettiriyoruz
         scene.Render(perspectiveCamera.Element);
+
+        //FPS istatistiklerini Update ediyoruz
+        stats.update();
 
         // Animate metodunu tekrar çağırıyoruz
         requestAnimationFrame(Animate);
