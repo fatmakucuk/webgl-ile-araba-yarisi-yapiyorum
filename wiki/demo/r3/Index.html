@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<title>WebGL ile Araba Yarışı Yapıyorum</title>
+<script src="libs/jquery.min.js"></script>
+<script src="libs/can.jquery.min.js"></script>
+<script src="libs/three.min.js"></script>
+<script src="libs/threex.KeyboardState.js"></script>
+<script src="libs/RequestAnimationFrame.js"></script>
+<script src="libs/Stats.js"></script>
+<script src="js/Scene.js"></script>
+<script src="js/PerspectiveCamera.js"></script>
+<script src="js/Light.js"></script>
+<script src="js/SkyBox.js"></script>
+<script src="js/Ground.js"></script>
+<script src="js/Car.js"></script>
+<script>
+
+    var stats, scene, perspectiveCamera, keyboardState, car, skyBox, ground, light, clock;
+
+    $(function ()
+    {
+        
+        // Animasyonlar arası geçen süreyi hesaplayacak nesnemizi tanımlıyoruz
+        clock = new THREE.Clock();
+
+        // FPS istatistiklerini tutmaktan sorumlu nesnemizi tanımlıyoruz
+        stats = new Stats();
+
+        // Sahnemizi hazırlıyoruz
+        scene = new CarGame.Scene(stats);
+
+
+        // Perspektif kameramızı hazırlıyoruz
+        perspectiveCamera = new CarGame.PerspectiveCamera();
+
+
+        // Işığı sahneye ekliyoruz
+        light = new CarGame.Light(scene);
+
+        scene.Add(light);
+
+
+        // 3D dünyamızın sınırlarını belirleyen küpümüzü sahneye ekliyoruz
+        skyBox = new CarGame.SkyBox();
+
+        scene.Add(skyBox);
+
+
+        // Zemini sahneye ekliyoruz
+        ground = new CarGame.Ground();
+
+        scene.Add(ground);
+
+
+        // Spor arabamızı sahneye ekliyoruz
+        car = new CarGame.Car();
+
+        scene.Add(car);
+
+
+        // Klavyenin durumunu yansıtan nesnemizi tanımlıyoruz
+        keyboardState = new THREEx.KeyboardState();
+
+
+        // Animasyon sürecimizi başlatıyoruz
+        Animate();
+    });
+
+    function Animate()
+    {
+        var deltaTime = clock.getDelta();
+        
+        // Arabamıza, klavyenin durumuna göre hizzaya gelmesini söylüyoruz
+        car.Animate(keyboardState, deltaTime);
+
+        // Perspektif kameranın gözünden sahnemizi Render ettiriyoruz
+        scene.Render(perspectiveCamera.Element);
+
+        //FPS istatistiklerini Update ediyoruz
+        stats.update();
+
+        // Animate metodunu tekrar çağırıyoruz
+        requestAnimationFrame(Animate);
+    }
+
+</script>
+</head>
+<body>
+</body>
+</html>
