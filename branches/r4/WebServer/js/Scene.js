@@ -104,6 +104,10 @@
 
         this.Renderer.shadowMapEnabled = true;
 
+        // Gölgelerin daha yumuşak Render edilmesini sağlıyoruz
+        this.Renderer.shadowMapSoft = true;
+        this.Renderer.shadowMapType = THREE.PCFSoftShadowMap
+
         // Render çıktısını gösterecek yüzeyi Container Div içerisine yerleştiriyoruz
         container.append(this.Renderer.domElement);
 
