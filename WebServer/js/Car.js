@@ -1,10 +1,16 @@
 ﻿can.Construct("CarGame.Car", {}, {
     Element: null,
+    CarBody: null,
 
     // Sabitlerimiz
     DIRECTION_FORWARD: 1,
     DIRECTION_NONE: 0,
     DIRECTION_BACKWARD: -1,
+    BENDING_NONE: 0,
+    BENDING_FRONT: 1,
+    BENDING_BACK: 2,
+    BENDING_LEFT: 3,
+    BENDING_RIGHT: 4,
 
     // Arabanın güncel vites değeri
     Shift: 0,
@@ -14,6 +20,10 @@
 
     // Arabanın güncel motor devri
     EngineCycle: 0,
+
+    // Arabanın ivmelenme sırasındaki eğilme durumları
+    CarBodyBendingForBreak: 0,
+    CarBodyBendingForTurn: 0,
 
     // Arabanın motor bilgileri
     // Şimdilik sadece max. devir değerini barındırıyor
@@ -53,13 +63,14 @@
         // Yüklenen modeli nesnemize ekliyoruz
         var material = new THREE.MeshFaceMaterial(materials);
 
-        var carBody = new THREE.Mesh(geometry, material);
+        this.car.CarBody = new THREE.Mesh(geometry, material);
 
-        carBody.position.set(0, 0, 0);
+        // Arabanın dönüş ekseni olan pivot noktasını arka aksın ortasına getirmek için gövdeyi ileri alıyoruz
+        this.car.CarBody.position.set(0, 0, -1.5);
 
-        carBody.castShadow = true;
+        this.car.CarBody.castShadow = true;
 
-        this.car.Element.add(carBody);
+        this.car.Element.add(this.car.CarBody);
     },
     CarWheelModelLoaded: function (geometry, materials)
     {
@@ -69,7 +80,7 @@
 
         var frontLeftWheel = new THREE.Mesh(geometry, material);
 
-        frontLeftWheel.position.set(-1, -0.72, -1.5);
+        frontLeftWheel.position.set(-1, -0.72, -3.0);
 
         frontLeftWheel.castShadow = true;
 
@@ -77,7 +88,7 @@
 
         var frontRightWheel = new THREE.Mesh(geometry.clone(), material);
 
-        frontRightWheel.position.set(1, -0.72, -1.5);
+        frontRightWheel.position.set(1, -0.72, -3.0);
 
         frontRightWheel.castShadow = true;
 
@@ -85,7 +96,8 @@
 
         var backLeftWheel = new THREE.Mesh(geometry, material);
 
-        backLeftWheel.position.set(-1, -0.72, 1.5);
+        // Arabanın dönüş ekseni olan pivot noktasını arka aksın ortasına getirmek için arka tekerlekleri z = 0'a yerleştiriyoruz
+        backLeftWheel.position.set(-1, -0.72, 0);
 
         backLeftWheel.castShadow = true;
 
@@ -93,7 +105,8 @@
 
         var backRightWheel = new THREE.Mesh(geometry.clone(), material);
 
-        backRightWheel.position.set(1, -0.72, 1.5);
+        // Arabanın dönüş ekseni olan pivot noktasını arka aksın ortasına getirmek için arka tekerlekleri z = 0'a yerleştiriyoruz
+        backRightWheel.position.set(1, -0.72, 0);
 
         backRightWheel.castShadow = true;
 
@@ -103,6 +116,36 @@
     {
         // (Gerekliyse) Otomatik vites değişimi yapıyoruz
         this.CheckShiftChange();
+
+        // Eğer arabanın gövdesi bir önceki animasyonda fren sebebiyle eğildi ise, eski konumuna geri getiriyoruz
+        if (this.CarBodyBendingForBreak != this.BENDING_NONE)
+        {
+            if (this.CarBodyBendingForBreak == this.BENDING_FRONT)
+            {
+                this.CarBody.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 90);
+            }
+            else if (this.CarBodyBendingForBreak == this.BENDING_BACK)
+            {
+                this.CarBody.rotateOnAxis(new THREE.Vector3(1, 0, 0), -1 * Math.PI / 90);
+            }
+
+            this.CarBodyBendingForBreak = this.BENDING_NONE;
+        }
+
+        // Eğer arabanın gövdesi bir önceki animasyonda dönüş sebebiyle eğildi ise, eski konumuna geri getiriyoruz
+        if (this.CarBodyBendingForTurn != this.BENDING_NONE)
+        {
+            if (this.CarBodyBendingForTurn == this.BENDING_RIGHT)
+            {
+                this.CarBody.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 45);
+            }
+            else if (this.CarBodyBendingForTurn == this.BENDING_LEFT)
+            {
+                this.CarBody.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * Math.PI / 45);
+            }
+
+            this.CarBodyBendingForTurn = this.BENDING_NONE;
+        }
 
         // Klavyeye göre arabanın gerekli aksiyonları almasını sağlıyoruz
         this.HandleKeyboard(keyboardState, deltaTime);
@@ -241,6 +284,20 @@
         {
             // Arabanın frene basıldığında yavaşlama formülü
             this.EngineCycle -= Math.round(7000 * deltaTime);
+
+            // Fren sırasında arabanın gövdesini eğiyoruz
+            if (direction == this.DIRECTION_FORWARD)
+            {
+                this.CarBodyBendingForBreak = this.BENDING_FRONT;
+
+                this.CarBody.rotateOnAxis(new THREE.Vector3(1, 0, 0), -1 * Math.PI / 90);
+            }
+            else if (direction == this.DIRECTION_BACKWARD)
+            {
+                this.CarBodyBendingForBreak = this.BENDING_BACK;
+
+                this.CarBody.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 90);
+            }
         }
     },
     SlowDown: function (deltaTime, direction)
@@ -322,7 +379,7 @@
     },
     TurnLeft: function (deltaTime)
     {
-        var angle = Math.PI / 3;
+        var angle = Math.PI / 40;
 
         // Geri giderken arabanın burnu ters tarafa dönmeli
         if (this.Speed < 0)
@@ -330,11 +387,21 @@
             angle *= -1;
         }
 
-        this.Element.rotateOnAxis(new THREE.Vector3(0, 1, 0), angle * deltaTime);
+        // Dönüş sırasında arabanın gövdesini eğiyoruz
+        // Aynı anda iki eksene göre eğim olmaması için, başka bir eğim hareketinin olmadığını kontrol ediyoruz
+        if (this.CarBodyBendingForTurn == this.BENDING_NONE && this.CarBodyBendingForBreak == this.BENDING_NONE)
+        {
+            this.CarBodyBendingForTurn = this.BENDING_RIGHT;
+
+            this.CarBody.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * Math.PI / 45);
+        }
+
+        // Yavaş hızda daha küçük dönüş açıları için, hızı dönüş formülümüze ekliyoruz
+        this.Element.rotateOnAxis(new THREE.Vector3(0, 1, 0), angle * Math.sqrt(Math.abs(this.Speed)) * deltaTime);
     },
     TurnRight: function (deltaTime)
     {
-        var angle = -1 * Math.PI / 3;
+        var angle = -1 * Math.PI / 40;
 
         // Geri giderken arabanın burnu ters tarafa dönmeli
         if (this.Speed < 0)
@@ -342,7 +409,17 @@
             angle *= -1;
         }
 
-        this.Element.rotateOnAxis(new THREE.Vector3(0, 1, 0), angle * deltaTime);
+        // Dönüş sırasında arabanın gövdesini eğiyoruz
+        // Aynı anda iki eksene göre eğim olmaması için, başka bir eğim hareketinin olmadığını kontrol ediyoruz
+        if (this.CarBodyBendingForTurn == this.BENDING_NONE && this.CarBodyBendingForBreak == this.BENDING_NONE)
+        {
+            this.CarBodyBendingForTurn = this.BENDING_LEFT;
+
+            this.CarBody.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 45);
+        }
+
+        // Yavaş hızda daha küçük dönüş açıları için, hızı dönüş formülümüze ekliyoruz
+        this.Element.rotateOnAxis(new THREE.Vector3(0, 1, 0), angle * Math.sqrt(Math.abs(this.Speed)) * deltaTime);
     },
     WriteCycle: function ()
     {
