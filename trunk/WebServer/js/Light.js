@@ -5,19 +5,31 @@
         // Işık grubumuz
         this.Element = new THREE.Object3D();
 
-
         // Gölge düşüren Spot ışığımız
-        var spotLight = new THREE.SpotLight(0xffffff, 0.7);
+        var directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
 
-        spotLight.position.set(0, 150, 150);
+        directionalLight.position.set(25, 58, 5);
 
-        spotLight.target.position.set(0, 0, 0);
+        directionalLight.target.position.set(0, 0, 0);
 
-        spotLight.castShadow = true;
+        directionalLight.castShadow = true;
 
-        spotLight.shadowDarkness = 0.7;
+        // Gölge koyuluğu
+        directionalLight.shadowDarkness = 0.5;
 
-        this.Element.add(spotLight);
+        // Gölge çözünürlüğü
+        directionalLight.shadowMapWidth = 2048;
+        directionalLight.shadowMapHeight = 2048;
+
+        // Gölge düşürülecek alan boyutu
+        directionalLight.shadowCameraNear = 2;
+        directionalLight.shadowCameraFar = 500;
+        directionalLight.shadowCameraLeft = -100;
+        directionalLight.shadowCameraRight = 100;
+        directionalLight.shadowCameraTop = 100;
+        directionalLight.shadowCameraBottom = -100;
+
+        this.Element.add(directionalLight);
         
 
         // Sahne ışığımız
