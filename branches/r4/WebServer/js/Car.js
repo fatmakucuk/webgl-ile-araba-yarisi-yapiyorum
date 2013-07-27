@@ -135,13 +135,13 @@
         // Eğer arabanın gövdesi bir önceki animasyonda dönüş sebebiyle eğildi ise, eski konumuna geri getiriyoruz
         if (this.CarBodyBendingForTurn != this.BENDING_NONE)
         {
-            if (this.CarBodyBendingForTurn == this.BENDING_LEFT)
-            {
-                this.CarBody.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * Math.PI / 45);
-            }
-            else if (this.CarBodyBendingForTurn == this.BENDING_RIGHT)
+            if (this.CarBodyBendingForTurn == this.BENDING_RIGHT)
             {
                 this.CarBody.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 45);
+            }
+            else if (this.CarBodyBendingForTurn == this.BENDING_LEFT)
+            {
+                this.CarBody.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * Math.PI / 45);
             }
 
             this.CarBodyBendingForTurn = this.BENDING_NONE;
@@ -391,21 +391,13 @@
         // Aynı anda iki eksene göre eğim olmaması için, başka bir eğim hareketinin olmadığını kontrol ediyoruz
         if (this.CarBodyBendingForTurn == this.BENDING_NONE && this.CarBodyBendingForBreak == this.BENDING_NONE)
         {
-            if (this.Speed < 0)
-            {
-                this.CarBodyBendingForTurn = this.BENDING_RIGHT;
+            this.CarBodyBendingForTurn = this.BENDING_RIGHT;
 
-                this.CarBody.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * Math.PI / 45);
-            }
-            else
-            {
-                this.CarBodyBendingForTurn = this.BENDING_LEFT;
-
-                this.CarBody.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 45);
-            }
+            this.CarBody.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * Math.PI / 45);
         }
 
-        this.Element.rotateOnAxis(new THREE.Vector3(0, 1, 0), angle * deltaTime * Math.sqrt(Math.abs(this.Speed)));
+        // Yavaş hızda daha küçük dönüş açıları için, hızı dönüş formülümüze ekliyoruz
+        this.Element.rotateOnAxis(new THREE.Vector3(0, 1, 0), angle * Math.sqrt(Math.abs(this.Speed)) * deltaTime);
     },
     TurnRight: function (deltaTime)
     {
@@ -421,23 +413,13 @@
         // Aynı anda iki eksene göre eğim olmaması için, başka bir eğim hareketinin olmadığını kontrol ediyoruz
         if (this.CarBodyBendingForTurn == this.BENDING_NONE && this.CarBodyBendingForBreak == this.BENDING_NONE)
         {
-            if (this.Speed < 0)
-            {
-                this.CarBodyBendingForTurn = this.BENDING_LEFT;
+            this.CarBodyBendingForTurn = this.BENDING_LEFT;
 
-                this.CarBody.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 45);
-            }
-            else
-            {
-                this.CarBodyBendingForTurn = this.BENDING_RIGHT;
-
-                this.CarBody.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * Math.PI / 45);
-            }
+            this.CarBody.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 45);
         }
 
-        
-
-        this.Element.rotateOnAxis(new THREE.Vector3(0, 1, 0), angle * deltaTime * Math.sqrt(Math.abs(this.Speed)));
+        // Yavaş hızda daha küçük dönüş açıları için, hızı dönüş formülümüze ekliyoruz
+        this.Element.rotateOnAxis(new THREE.Vector3(0, 1, 0), angle * Math.sqrt(Math.abs(this.Speed)) * deltaTime);
     },
     WriteCycle: function ()
     {
