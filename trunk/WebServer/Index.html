@@ -9,18 +9,17 @@
 <script src="libs/RequestAnimationFrame.js"></script>
 <script src="libs/Stats.js"></script>
 <script src="js/Scene.js"></script>
-<script src="js/PerspectiveCamera.js"></script>
+<script src="js/Camera.js"></script>
 <script src="js/Light.js"></script>
 <script src="js/SkyBox.js"></script>
 <script src="js/Ground.js"></script>
 <script src="js/Car.js"></script>
 <script>
 
-    var stats, scene, perspectiveCamera, keyboardState, car, skyBox, ground, light, clock;
+    var stats, scene, camera, keyboardState, car, skyBox, ground, light, clock;
 
     $(function ()
     {
-        
         // Animasyonlar arası geçen süreyi hesaplayacak nesnemizi tanımlıyoruz
         clock = new THREE.Clock();
 
@@ -32,7 +31,7 @@
 
 
         // Perspektif kameramızı hazırlıyoruz
-        perspectiveCamera = new CarGame.PerspectiveCamera();
+        camera = new CarGame.Camera();
 
 
         // Işığı sahneye ekliyoruz
@@ -70,12 +69,18 @@
     function Animate()
     {
         var deltaTime = clock.getDelta();
-        
-        // Arabamıza, klavyenin durumuna göre hizzaya gelmesini söylüyoruz
+
+        // Arabamıza, klavyenin durumuna göre gerekli aksiyonları almasını söylüyoruz
         car.Animate(keyboardState, deltaTime);
 
-        // Perspektif kameranın gözünden sahnemizi Render ettiriyoruz
-        scene.Render(perspectiveCamera.Element);
+        // Kemaramıza, klavyenin ve arabanın durumuna göre gerekli aksiyonları almasını söylüyoruz
+        camera.Animate(keyboardState, car);
+
+        // Işığımıza, arabanın durumuna göre gerekli aksiyonları almasını söylüyoruz
+        light.Animate(car);
+
+        // Kameranın gözünden sahnemizi Render ettiriyoruz
+        scene.Render(camera.Element);
 
         //FPS istatistiklerini Update ediyoruz
         stats.update();
