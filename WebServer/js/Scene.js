@@ -15,6 +15,8 @@
 
         this.AddStatsGadget();
 
+        this.AddSplashScreen();
+
         this.PrepareScene();
     },
     Render: function (camera)
@@ -26,6 +28,32 @@
     {
         // Belirtilen nesne sahneye ekleniyor
         this.Element.add(object.Element);
+    },
+    AddSplashScreen: function ()
+    {
+        // HTML'e, üzerine Render edilmiş görüntüleri yansıtacağımız ve tüm sayfayı kaplayan bir Div ekliyoruz
+        $("body").append("<div id='SplashScreen' />");
+
+        var splashScreen = $("#SplashScreen");
+
+        splashScreen.append("<div id='SplashScreenText'>Yükleniyor, lütfen bekleyiniz...</div>");
+
+        splashScreen.css("position", "absolute");
+        splashScreen.css("left", "0px");
+        splashScreen.css("top", "0px");
+        splashScreen.css("width", "100%");
+        splashScreen.css("height", "100%");
+        splashScreen.css("overflow", "hidden");
+        splashScreen.css("backgroundColor", "#000000");
+        splashScreen.css("display", "table");
+
+        var splashScreenText = $("#SplashScreenText");
+
+        splashScreenText.css("display", "table-cell");
+        splashScreenText.css("verticalAlign", "middle");
+        splashScreenText.css("textAlign", "center");
+        splashScreenText.css("color", "#ffffff");
+        
     },
     AddRenderContainer: function ()
     {
@@ -40,7 +68,6 @@
         container.css("width", "100%");
         container.css("height", "100%");
         container.css("overflow", "hidden");
-        container.css("zindex", "2");
     },
     AddKeyboardHint: function ()
     {
@@ -52,12 +79,12 @@
         KeyboardHint.css("position", "absolute");
         KeyboardHint.css("left", "10px");
         KeyboardHint.css("top", "250px");
-        KeyboardHint.css("zindex", "1");
         KeyboardHint.css("color", "#660000");
 
         KeyboardHint.append("Kontrol Tuşları<br>");
         KeyboardHint.append("----------------------------------------------<br>");
         KeyboardHint.append("Yön Tuşları : Gaz, Fren, Sol, Sağ<br>");
+        KeyboardHint.append("Ctrl : El freni<br>");
         KeyboardHint.append("<br>");
         KeyboardHint.append("1 : Arkadan takip eden kamera<br>");
         KeyboardHint.append("2 : Arkadan ve yüksekten takip eden kamera<br>");
@@ -77,7 +104,6 @@
         Tachometer.css("position", "absolute");
         Tachometer.css("left", (window.innerWidth - 120) + "px");
         Tachometer.css("top", "20px");
-        Tachometer.css("zindex", "1");
         Tachometer.css("color", "#ff00ff");
     },
     AddSpeedometer: function ()
@@ -90,7 +116,6 @@
         Speedometer.css("position", "absolute");
         Speedometer.css("left", (window.innerWidth - 120) + "px");
         Speedometer.css("top", "50px");
-        Speedometer.css("zindex", "1");
         Speedometer.css("color", "#ff00ff");
     },
     AddShiftIndicator: function ()
@@ -103,7 +128,6 @@
         ShiftIndicator.css("position", "absolute");
         ShiftIndicator.css("left", (window.innerWidth - 120) + "px");
         ShiftIndicator.css("top", "80px");
-        ShiftIndicator.css("zindex", "1");
         ShiftIndicator.css("color", "#ff00ff");
     },
     AddStatsGadget: function ()
@@ -116,7 +140,6 @@
         statsDiv.css("position", "absolute");
         statsDiv.css("left", "0px");
         statsDiv.css("top", "0px");
-        statsDiv.css("zindex", "1");
 
         statsDiv.append(stats.domElement);
     },

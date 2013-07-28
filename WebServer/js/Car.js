@@ -20,6 +20,9 @@
     LEFT: 3,
     RIGHT: 4,
 
+    // Yüklemesi beklenen model sayısı
+    RemainingModelCount: 2,
+
     // Arabanın güncel vites değeri
     Shift: 0,
 
@@ -86,6 +89,9 @@
         this.car.CarBodyContainer.add(this.car.CarBody);
 
         this.car.Element.add(this.car.CarBodyContainer);
+
+        // Yüklemesi beklenen model sayısını bir azaltıyoruz
+        this.car.RemainingModelCount--
     },
     CarWheelModelLoaded: function (geometry, materials)
     {
@@ -146,6 +152,9 @@
         this.car.BackRightWheelContainer.add(this.car.BackRightWheel);
 
         this.car.Element.add(this.car.BackRightWheelContainer);
+
+        // Yüklemesi beklenen model sayısını bir azaltıyoruz
+        this.car.RemainingModelCount--;
     },
     Animate: function (keyboardState, deltaTime)
     {
@@ -293,16 +302,26 @@
             }
         }
 
+        var handbreak = false;
+
+        if (keyboardState.pressed("ctrl"))
+        {
+            // Arabanın biraz yavaşlaması sağlıyoruz
+            this.Handbreak(deltaTime, direction);
+
+            handbreak = true;
+        }
+
         if (keyboardState.pressed("left"))
         {
             // Arabanın sola dönmesini sağlıyoruz
-            this.TurnLeft(deltaTime);
+            this.TurnLeft(handbreak, deltaTime);
         }
 
         if (keyboardState.pressed("right"))
         {
             // Arabanın sağa dönmesini sağlıyoruz
-            this.TurnRight(deltaTime);
+            this.TurnRight(handbreak, deltaTime);
         }
     },
     Accelerate: function (deltaTime, direction)
@@ -351,6 +370,14 @@
 
                 this.CarBody.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 90);
             }
+        }
+    },
+    Handbreak: function (deltaTime, direction)
+    {
+        if (this.EngineCycle > 0)
+        {
+            // Arabanın frene basıldığında yavaşlama formülü
+            this.EngineCycle -= Math.round(1500 * deltaTime);
         }
     },
     SlowDown: function (deltaTime, direction)
@@ -430,13 +457,19 @@
         // Çünkü metrik koordinat sisteminde her koordinatı 1 metreye karşılık geliyor diye kabul etmiştik
         this.Element.translateZ(-1 * this.Speed / (3.6 / deltaTime));
     },
-    TurnLeft: function (deltaTime)
+    TurnLeft: function (handbreak, deltaTime)
     {
         // Eğer araba hareket ediyorsa, dönüş hareketini gerçekleştiriyoruz
         if (this.Speed != 0)
         {
             // Dönüş açısını hesaplıyoruz
             var angle = (Math.PI / 40) * Math.sqrt(Math.abs(this.Speed)) * deltaTime;
+
+            // El frenine basılı olduğu takdirde dönüş açısını iki katına çıkarıyoruz
+            if (handbreak)
+            {
+                angle *= 2;
+            }
 
             // Geri giderken arabanın burnu ters tarafa dönmeli
             if (this.Speed < 0)
@@ -456,18 +489,27 @@
         }
 
         // Hızdan bağımsız şekilde ön tekerlekleri sola doğru çeviriyoruz
-        this.FrontLeftWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 10);
-        this.FrontRightWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 10);
+        if (this.FrontWheelWay == this.NONE)
+        {
+            this.FrontLeftWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 10);
+            this.FrontRightWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 10);
 
-        this.FrontWheelWay = this.LEFT;
+            this.FrontWheelWay = this.LEFT;
+        }
     },
-    TurnRight: function (deltaTime)
+    TurnRight: function (handbreak, deltaTime)
     {
         // Eğer araba hareket ediyorsa, dönüş hareketini gerçekleştiriyoruz
         if (this.Speed != 0)
         {
             // Dönüş açısını hesaplıyoruz
             var angle = -1 * (Math.PI / 40) * Math.sqrt(Math.abs(this.Speed)) * deltaTime;
+
+            // El frenine basılı olduğu takdirde dönüş açısını iki katına çıkarıyoruz
+            if (handbreak)
+            {
+                angle *= 2;
+            }
 
             // Geri giderken arabanın burnu ters tarafa dönmeli
             if (this.Speed < 0)
@@ -487,10 +529,13 @@
         }
 
         // Hızdan bağımsız şekilde ön tekerlekleri sağa doğru çeviriyoruz
-        this.FrontLeftWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), -1 * Math.PI / 10);
-        this.FrontRightWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), -1 * Math.PI / 10);
+        if (this.FrontWheelWay == this.NONE)
+        {
+            this.FrontLeftWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), -1 * Math.PI / 10);
+            this.FrontRightWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), -1 * Math.PI / 10);
 
-        this.FrontWheelWay = this.RIGHT;
+            this.FrontWheelWay = this.RIGHT;
+        }
     },
     RotateWheels: function (deltaTime)
     {
