@@ -77,7 +77,7 @@
         this.car.CarBodyContainer = new THREE.Object3D();
 
         // Arabanın dönüş ekseni olan pivot noktasını arka aksın ortasına getirmek için gövdeyi ileri alıyoruz
-        this.car.CarBodyContainer.position.set(0, 0, -1.5);
+        this.car.CarBodyContainer.position.set(0, -0.4, -1.5);
 
         this.car.CarBody = new THREE.Mesh(geometry, material);
 
