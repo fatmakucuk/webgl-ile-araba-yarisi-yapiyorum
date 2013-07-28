@@ -1,40 +1,49 @@
 ﻿can.Construct("CarGame.Light", {}, {
     Element: null,
+    DirectionalLight: null,
     init: function ()
     {
         // Işık grubumuz
         this.Element = new THREE.Object3D();
 
         // Gölge düşüren Spot ışığımız
-        var directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
+        this.DirectionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
 
-        directionalLight.position.set(25, 58, 5);
+        this.DirectionalLight.position.set(0, 500, 0);
 
-        directionalLight.target.position.set(0, 0, 0);
-
-        directionalLight.castShadow = true;
+        this.DirectionalLight.castShadow = true;
 
         // Gölge koyuluğu
-        directionalLight.shadowDarkness = 0.5;
+        this.DirectionalLight.shadowDarkness = 0.5;
 
         // Gölge çözünürlüğü
-        directionalLight.shadowMapWidth = 2048;
-        directionalLight.shadowMapHeight = 2048;
+        this.DirectionalLight.shadowMapWidth = 2048;
+        this.DirectionalLight.shadowMapHeight = 2048;
 
         // Gölge düşürülecek alan boyutu
-        directionalLight.shadowCameraNear = 2;
-        directionalLight.shadowCameraFar = 500;
-        directionalLight.shadowCameraLeft = -100;
-        directionalLight.shadowCameraRight = 100;
-        directionalLight.shadowCameraTop = 100;
-        directionalLight.shadowCameraBottom = -100;
+        this.DirectionalLight.shadowCameraNear = 490;
+        this.DirectionalLight.shadowCameraFar = 5000;
+        this.DirectionalLight.shadowCameraLeft = -100;
+        this.DirectionalLight.shadowCameraRight = 100;
+        this.DirectionalLight.shadowCameraTop = 100;
+        this.DirectionalLight.shadowCameraBottom = -100;
 
-        this.Element.add(directionalLight);
+        this.Element.add(this.DirectionalLight);
         
 
         // Sahne ışığımız
         var hemisphereLight = new THREE.HemisphereLight(0x454545, 0x454545, 2);
 
         this.Element.add(hemisphereLight);
+    },
+    Animate: function (car)
+    {
+        // Işığın sahnedeki hedefini, arabanın konumuna göre ayarlıyoruz
+        this.SetLightTarget(car);
+    },
+    SetLightTarget: function (car)
+    {
+        // Işığın sahnedeki hedefini, arabanın konumuna göre ayarlıyoruz
+        this.DirectionalLight.target.position = car.Element.position;
     }
 });
