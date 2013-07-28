@@ -61,6 +61,8 @@
         // Klavyenin durumunu yansıtan nesnemizi tanımlıyoruz
         keyboardState = new THREEx.KeyboardState();
 
+        // Tüm modeller yüklendiğinde Splash Screen'in kaldırılmasını istiyoruz
+        RemoveSplashScreen();
 
         // Animasyon sürecimizi başlatıyoruz
         Animate();
@@ -87,6 +89,20 @@
 
         // Animate metodunu tekrar çağırıyoruz
         requestAnimationFrame(Animate);
+    }
+
+    function RemoveSplashScreen()
+    {
+        if (car.RemainingModelCount == 0)
+        {
+            // Yüklenmesi beklenen model sayısı sıfıra ulaşınca Splash Screen'i kaldırıyoruz
+            $("#SplashScreen").remove();
+        }
+        else
+        {
+            // Splash Screen'i kaldırana kadar metodun kendi kendini çağırmasını sağlıyoruz
+            requestAnimationFrame(RemoveSplashScreen);
+        }
     }
 
 </script>
