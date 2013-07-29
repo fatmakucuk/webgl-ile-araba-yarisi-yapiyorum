@@ -6,6 +6,10 @@
     FrontRightWheel: null,
     BackLeftWheel: null,
     BackRightWheel: null,
+    FrontLeftCarBreak: null,
+    FrontRightCarBreak: null,
+    BackLeftCarBreak: null,
+    BackRightCarBreak: null,
     FrontLeftWheelContainer: null,
     FrontRightWheelContainer: null,
     BackLeftWheelContainer: null,
@@ -21,7 +25,7 @@
     RIGHT: 4,
 
     // Yüklemesi beklenen model sayısı
-    RemainingModelCount: 2,
+    RemainingModelCount: 3,
 
     // Arabanın güncel vites değeri
     Shift: 0,
@@ -65,10 +69,11 @@
 
         jsonLoader.load("models/CarWheel.js", this.CarWheelModelLoaded);
 
-        // Hızlanmayı daha iyi görebilmek için açılışta arabayı biraz sağa çekiyoruz
+        jsonLoader.load("models/CarBreak.js", this.CarBreakModelLoaded);
+
+        // Açılışta arabayı biraz sağa çekiyoruz ve şık dursun diye 45 derece çeviriyoruz
         this.Element.position.set(10, 1.07, 0);
 
-        // Açılışta şık dursun diye arabayı 45 derece çeviriyoruz
         this.Element.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 4);
     },
     CarBodyModelLoaded: function (geometry, materials)
@@ -80,11 +85,14 @@
         this.car.CarBodyContainer = new THREE.Object3D();
 
         // Arabanın dönüş ekseni olan pivot noktasını arka aksın ortasına getirmek için gövdeyi ileri alıyoruz
-        this.car.CarBodyContainer.position.set(0, -0.4, -1.5);
+        this.car.CarBodyContainer.position.set(0, -0.95, -1.5);
 
         this.car.CarBody = new THREE.Mesh(geometry, material);
 
         this.car.CarBody.castShadow = true;
+
+        // Modelleme yan yapıldığı için arabayı 90 derece çeviriyoruz
+        this.car.CarBody.rotateOnAxis(new THREE.Vector3(0, 1, 0), -1 * Math.PI / 2);
 
         this.car.CarBodyContainer.add(this.car.CarBody);
 
@@ -102,11 +110,14 @@
         // Sol ön tekerlek
         this.car.FrontLeftWheelContainer = new THREE.Object3D();
 
-        this.car.FrontLeftWheelContainer.position.set(-1, -0.72, -3.0);
+        this.car.FrontLeftWheelContainer.position.set(-0.8, -0.75, -2.75);
 
         this.car.FrontLeftWheel = new THREE.Mesh(geometry, material);
 
         this.car.FrontLeftWheel.castShadow = true;
+
+        // Modelleme yan yapıldığı için tekerleği 90 derece çeviriyoruz
+        this.car.FrontLeftWheel.rotateOnAxis(new THREE.Vector3(0, 1, 0), -1 * Math.PI / 2);
 
         this.car.FrontLeftWheelContainer.add(this.car.FrontLeftWheel);
 
@@ -115,11 +126,17 @@
         // Sağ ön tekerlek
         this.car.FrontRightWheelContainer = new THREE.Object3D();
 
-        this.car.FrontRightWheelContainer.position.set(1, -0.72, -3.0);
+        this.car.FrontRightWheelContainer.position.set(0.8, -0.75, -2.75);
 
         this.car.FrontRightWheel = new THREE.Mesh(geometry.clone(), material);
 
         this.car.FrontRightWheel.castShadow = true;
+
+        // Modelleme yan yapıldığı için tekerleği 90 derece çeviriyoruz
+        this.car.FrontRightWheel.rotateOnAxis(new THREE.Vector3(0, 1, 0), -1 * Math.PI / 2);
+
+        // Tek bir tekerlek modelimiz olduğundan sağ taraftaki terkerlekler için modeli 180 derece çeviriyoruz
+        this.car.FrontRightWheel.rotateOnAxis(new THREE.Vector3(1, 0, 0), -1 * Math.PI);
 
         this.car.FrontRightWheelContainer.add(this.car.FrontRightWheel);
 
@@ -129,11 +146,14 @@
         this.car.BackLeftWheelContainer = new THREE.Object3D();
 
         // Arabanın dönüş ekseni olan pivot noktasını arka aksın ortasına getirmek için arka tekerlekleri z = 0'a yerleştiriyoruz
-        this.car.BackLeftWheelContainer.position.set(-1, -0.72, 0);
+        this.car.BackLeftWheelContainer.position.set(-0.8, -0.75, -0.09);
 
         this.car.BackLeftWheel = new THREE.Mesh(geometry, material);
 
         this.car.BackLeftWheel.castShadow = true;
+
+        // Modelleme yan yapıldığı için tekerleği 90 derece çeviriyoruz
+        this.car.BackLeftWheel.rotateOnAxis(new THREE.Vector3(0, 1, 0), -1 * Math.PI / 2);
 
         this.car.BackLeftWheelContainer.add(this.car.BackLeftWheel);
 
@@ -143,15 +163,75 @@
         this.car.BackRightWheelContainer = new THREE.Object3D();
 
         // Arabanın dönüş ekseni olan pivot noktasını arka aksın ortasına getirmek için arka tekerlekleri z = 0'a yerleştiriyoruz
-        this.car.BackRightWheelContainer.position.set(1, -0.72, 0);
+        this.car.BackRightWheelContainer.position.set(0.8, -0.75, -0.09);
 
         this.car.BackRightWheel = new THREE.Mesh(geometry.clone(), material);
 
         this.car.BackRightWheel.castShadow = true;
 
+        // Modelleme yan yapıldığı için tekerleği 90 derece çeviriyoruz
+        this.car.BackRightWheel.rotateOnAxis(new THREE.Vector3(0, 1, 0), -1 * Math.PI / 2);
+
+        // Tek bir tekerlek modelimiz olduğundan sağ taraftaki terkerlekler için modeli 180 derece çeviriyoruz
+        this.car.BackRightWheel.rotateOnAxis(new THREE.Vector3(1, 0, 0), -1 * Math.PI);
+
         this.car.BackRightWheelContainer.add(this.car.BackRightWheel);
 
         this.car.Element.add(this.car.BackRightWheelContainer);
+
+        // Yüklemesi beklenen model sayısını bir azaltıyoruz
+        this.car.RemainingModelCount--;
+    },
+    CarBreakModelLoaded: function (geometry, materials)
+    {
+        // CarBreak.js dosyasının yüklenmesi tamamlandığı zaman bu metot işletilir
+        // Yüklenen modeli nesnemize ekliyoruz
+        var material = new THREE.MeshFaceMaterial(materials);
+
+        this.car.FrontLeftCarBreak = new THREE.Mesh(geometry, material);
+
+        // Modelleme yan yapıldığı için frenleri 90 derece çeviriyoruz
+        this.car.FrontLeftCarBreak.rotateOnAxis(new THREE.Vector3(0, 1, 0), -1 * Math.PI / 2);
+
+        this.car.FrontLeftCarBreak.position.set(-0.1, -0.4, 0);
+
+        this.car.FrontLeftWheelContainer.add(this.car.FrontLeftCarBreak);
+
+        // Sağ ön tekerlek
+        this.car.FrontRightCarBreak = new THREE.Mesh(geometry.clone(), material);
+
+        // Modelleme yan yapıldığı için frenleri 90 derece çeviriyoruz
+        this.car.FrontRightCarBreak.rotateOnAxis(new THREE.Vector3(0, 1, 0), -1 * Math.PI / 2);
+
+        // Tek bir fren modelimiz olduğundan sağ taraftaki frenler için modeli 180 derece çeviriyoruz
+        this.car.FrontRightCarBreak.rotateOnAxis(new THREE.Vector3(1, 0, 0), -1 * Math.PI);
+
+        this.car.FrontRightCarBreak.position.set(0.1, 0.4, 0);
+
+        this.car.FrontRightWheelContainer.add(this.car.FrontRightCarBreak);
+
+        // Sol arka tekerlek
+        this.car.BackLeftCarBreak = new THREE.Mesh(geometry, material);
+
+        // Modelleme yan yapıldığı için frenleri 90 derece çeviriyoruz
+        this.car.BackLeftCarBreak.rotateOnAxis(new THREE.Vector3(0, 1, 0), -1 * Math.PI / 2);
+
+        this.car.BackLeftCarBreak.position.set(-0.1, -0.4, 0);
+
+        this.car.BackLeftWheelContainer.add(this.car.BackLeftCarBreak);
+
+        // Sağ arka tekerlek
+        this.car.BackRightCarBreak = new THREE.Mesh(geometry.clone(), material);
+
+        // Modelleme yan yapıldığı için frenleri 90 derece çeviriyoruz
+        this.car.BackRightCarBreak.rotateOnAxis(new THREE.Vector3(0, 1, 0), -1 * Math.PI / 2);
+
+        // Tek bir fren modelimiz olduğundan sağ taraftaki frenler için modeli 180 derece çeviriyoruz
+        this.car.BackRightCarBreak.rotateOnAxis(new THREE.Vector3(1, 0, 0), -1 * Math.PI);
+
+        this.car.BackRightCarBreak.position.set(0.1, 0.4, 0);
+
+        this.car.BackRightWheelContainer.add(this.car.BackRightCarBreak);
 
         // Yüklemesi beklenen model sayısını bir azaltıyoruz
         this.car.RemainingModelCount--;
@@ -166,11 +246,11 @@
         {
             if (this.CarBodyBendingForBreak == this.FRONT)
             {
-                this.CarBody.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 90);
+                this.CarBody.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * Math.PI / 180);
             }
             else if (this.CarBodyBendingForBreak == this.BACK)
             {
-                this.CarBody.rotateOnAxis(new THREE.Vector3(1, 0, 0), -1 * Math.PI / 90);
+                this.CarBody.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 180);
             }
 
             this.CarBodyBendingForBreak = this.NONE;
@@ -181,11 +261,11 @@
         {
             if (this.CarBodyBendingForTurn == this.RIGHT)
             {
-                this.CarBodyContainer.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 45);
+                this.CarBodyContainer.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 90);
             }
             else if (this.CarBodyBendingForTurn == this.LEFT)
             {
-                this.CarBodyContainer.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * Math.PI / 45);
+                this.CarBodyContainer.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * Math.PI / 90);
             }
 
             this.CarBodyBendingForTurn = this.NONE;
@@ -207,7 +287,7 @@
 
             this.FrontWheelWay = this.NONE;
         }
-        
+
 
         // Klavyeye göre arabanın gerekli aksiyonları almasını sağlıyoruz
         this.HandleKeyboard(keyboardState, deltaTime);
@@ -362,13 +442,13 @@
             {
                 this.CarBodyBendingForBreak = this.FRONT;
 
-                this.CarBody.rotateOnAxis(new THREE.Vector3(1, 0, 0), -1 * Math.PI / 90);
+                this.CarBody.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 180);
             }
             else if (direction == this.BACKWARD)
             {
                 this.CarBodyBendingForBreak = this.BACK;
 
-                this.CarBody.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 90);
+                this.CarBody.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * Math.PI / 180);
             }
         }
     },
@@ -484,7 +564,7 @@
             {
                 this.CarBodyBendingForTurn = this.RIGHT;
 
-                this.CarBodyContainer.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * Math.PI / 45);
+                this.CarBodyContainer.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * Math.PI / 90);
             }
         }
 
@@ -524,7 +604,7 @@
             {
                 this.CarBodyBendingForTurn = this.LEFT;
 
-                this.CarBodyContainer.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 45);
+                this.CarBodyContainer.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 90);
             }
         }
 
@@ -540,13 +620,15 @@
     RotateWheels: function (deltaTime)
     {
         // Aracın hızına ve tekerleğin çevre ölçüsüne göre dönülmesi gereken açıyı hesaplıyoruz
-        var angle = -1 * (this.Speed / 3.6) / (2 * 0.325 * Math.PI) * deltaTime * 2 * Math.PI;
+        var angle = (this.Speed / 3.6) / (2 * 0.325 * Math.PI) * deltaTime * 2 * Math.PI;
 
         //Dört tekerleği de bulunan açıda döndürüyoruz
-        this.FrontLeftWheel.rotateOnAxis(new THREE.Vector3(1, 0, 0), angle);
-        this.FrontRightWheel.rotateOnAxis(new THREE.Vector3(1, 0, 0), angle);
-        this.BackLeftWheel.rotateOnAxis(new THREE.Vector3(1, 0, 0), angle);
-        this.BackRightWheel.rotateOnAxis(new THREE.Vector3(1, 0, 0), angle);
+        this.FrontLeftWheel.rotateOnAxis(new THREE.Vector3(0, 0, 1), angle);
+        this.BackLeftWheel.rotateOnAxis(new THREE.Vector3(0, 0, 1), angle);
+
+        // Sağdaki tekerlekler 180 derece çevrilmiş olduğu için, tam ters açıda döndürüyoruz
+        this.FrontRightWheel.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * angle);
+        this.BackRightWheel.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * angle);
     },
     WriteCycle: function ()
     {
