@@ -22,43 +22,31 @@
         {
             // Arkadan takip eden kamera
             this.SelectedCamera = 1;
-
-            this.Element.position.set(0, 10, 20);
         }
         else if (keyboardState.pressed("2"))
         {
             // Arkadan ve yüksekten takip eden kamera
             this.SelectedCamera = 2;
-
-            this.Element.position.set(0, 20, 30);
         }
         else if (keyboardState.pressed("3"))
         {
             // Tampon kamerası
             this.SelectedCamera = 3;
-
-            this.Element.position.set(0, 20, 30);
         }
         else if (keyboardState.pressed("4"))
         {
             // Ön kaput üstü kamerası
             this.SelectedCamera = 4;
-
-            this.Element.position.set(0, 20, 30);
         }
         else if (keyboardState.pressed("5"))
         {
             // Alçak perspektif kamera
             this.SelectedCamera = 5;
-
-            this.Element.position.set(0, 20, 30);
         }
         else if (keyboardState.pressed("6"))
         {
             // Yüksek perspektif kamera
             this.SelectedCamera = 6;
-
-            this.Element.position.set(0, 20, 30);
         }
     },
     SetCameraPosition: function (car)
@@ -66,8 +54,8 @@
         if (this.SelectedCamera == 1)
         {
             // Kemaranın, arabanın pozisyonuna göre alacağı bağıl konumunu yazıyoruz
-            // Burada kamerayı arabanın 2 metre yukarısına ve 10 metre gerisine yerleştirdik
-            var relativeCameraOffset = new THREE.Vector3(0, 2, 10);
+            // Burada kamerayı arabanın 1 metre yukarısına ve 6 metre gerisine yerleştirdik
+            var relativeCameraOffset = new THREE.Vector3(0, 1, 6);
 
             // Kemaranın baktığı hedefin, arabanın pozisyonuna göre alacağı bağıl konumunu yazıyoruz
             // Burada hedef noktası olarak arabanın 1 metre yukarısını verdik
@@ -86,8 +74,8 @@
         else if (this.SelectedCamera == 2)
         {
             // Kemaranın, arabanın pozisyonuna göre alacağı bağıl konumunu yazıyoruz
-            // Burada kamerayı arabanın 4 metre yukarısına ve 20 metre gerisine yerleştirdik
-            var relativeCameraOffset = new THREE.Vector3(0, 4, 20);
+            // Burada kamerayı arabanın 2 metre yukarısına ve 10 metre gerisine yerleştirdik
+            var relativeCameraOffset = new THREE.Vector3(0, 2, 10);
 
             // Kemaranın baktığı hedefin, arabanın pozisyonuna göre alacağı bağıl konumunu yazıyoruz
             // Burada hedef noktası olarak arabanın 1 metre yukarısını verdik
