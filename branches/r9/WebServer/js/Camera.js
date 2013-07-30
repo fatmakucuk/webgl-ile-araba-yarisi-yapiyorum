@@ -7,52 +7,24 @@
 
         // 45mm'lik bir kamera kullanıyoruz. Görüş mesafesi 2km
         this.Element = new THREE.PerspectiveCamera(45, aspectRatio, 0.01, 2000);
+
+        this.Element.position.set(-10, 5, -10);
     },
     Animate: function (keyboardState, car)
     {
         // Klavyeye göre kameranın değişmesini sağlıyoruz
-        this.HandleKeyboard(keyboardState);
+        this.HandleKeyboard(keyboardState, car);
 
-        // Kameranın sahnedeki pozisyonunu ve hedefini, arabanın konumuna göre ayarlıyoruz
-        this.SetCameraPosition(car);
+        // Kameranın sahnedeki hedefini, arabanın konumuna göre ayarlıyoruz (Sadece 5. ve 6. kameralar için geçerli)
+        this.SetCameraTarget(car);
     },
-    HandleKeyboard: function (keyboardState)
+    HandleKeyboard: function (keyboardState, car)
     {
         if (keyboardState.pressed("1"))
         {
             // Arkadan takip eden kamera
             this.SelectedCamera = 1;
-        }
-        else if (keyboardState.pressed("2"))
-        {
-            // Arkadan ve yüksekten takip eden kamera
-            this.SelectedCamera = 2;
-        }
-        else if (keyboardState.pressed("3"))
-        {
-            // Tampon kamerası
-            this.SelectedCamera = 3;
-        }
-        else if (keyboardState.pressed("4"))
-        {
-            // Ön kaput üstü kamerası
-            this.SelectedCamera = 4;
-        }
-        else if (keyboardState.pressed("5"))
-        {
-            // Alçak perspektif kamera
-            this.SelectedCamera = 5;
-        }
-        else if (keyboardState.pressed("6"))
-        {
-            // Yüksek perspektif kamera
-            this.SelectedCamera = 6;
-        }
-    },
-    SetCameraPosition: function (car)
-    {
-        if (this.SelectedCamera == 1)
-        {
+
             // Kemaranın, arabanın pozisyonuna göre alacağı bağıl konumunu yazıyoruz
             // Burada kamerayı arabanın 1 metre yukarısına ve 6 metre gerisine yerleştirdik
             var relativeCameraOffset = new THREE.Vector3(0, 1, 6);
@@ -61,18 +33,20 @@
             // Burada hedef noktası olarak arabanın 1 metre yukarısını verdik
             var relativeTargetOffset = new THREE.Vector3(0, 1, 0);
 
-            // Belirttiğimiz bağıl konumların sahnedeki gerçek konum karşılıklarını buluyoruz
-            var cameraOffset = relativeCameraOffset.applyMatrix4(car.Element.matrixWorld);
-            var targetOffset = relativeTargetOffset.applyMatrix4(car.Element.matrixWorld);
-
             // Kamerayı hesaplanan noktaya taşıyoruz
-            this.Element.position.set(cameraOffset.x, cameraOffset.y, cameraOffset.z);
+            this.Element.position.copy(relativeCameraOffset);
 
             // Kameranın hesaplanan noktaya bakmasını sağlıyoruz
-            this.Element.lookAt(targetOffset);
+            this.Element.lookAt(relativeTargetOffset);
+
+            // Kamerayı, arabanın grubuna ekliyoruz. Böylece hiyerarşi sebebiyle, araba hareket ettikçe kamera da hareket edecek
+            car.Element.add(this.Element);
         }
-        else if (this.SelectedCamera == 2)
+        else if (keyboardState.pressed("2"))
         {
+            // Arkadan ve yüksekten takip eden kamera
+            this.SelectedCamera = 2;
+
             // Kemaranın, arabanın pozisyonuna göre alacağı bağıl konumunu yazıyoruz
             // Burada kamerayı arabanın 2 metre yukarısına ve 10 metre gerisine yerleştirdik
             var relativeCameraOffset = new THREE.Vector3(0, 2, 10);
@@ -81,69 +55,91 @@
             // Burada hedef noktası olarak arabanın 1 metre yukarısını verdik
             var relativeTargetOffset = new THREE.Vector3(0, 1, 0);
 
-            // Belirttiğimiz bağıl konumların sahnedeki gerçek konum karşılıklarını buluyoruz
-            var cameraOffset = relativeCameraOffset.applyMatrix4(car.Element.matrixWorld);
-            var targetOffset = relativeTargetOffset.applyMatrix4(car.Element.matrixWorld);
-
             // Kamerayı hesaplanan noktaya taşıyoruz
-            this.Element.position.set(cameraOffset.x, cameraOffset.y, cameraOffset.z);
+            this.Element.position.copy(relativeCameraOffset);
 
             // Kameranın hesaplanan noktaya bakmasını sağlıyoruz
-            this.Element.lookAt(targetOffset);
+            this.Element.lookAt(relativeTargetOffset);
+
+            // Kamerayı, arabanın grubuna ekliyoruz. Böylece hiyerarşi sebebiyle, araba hareket ettikçe kamera da hareket edecek
+            car.Element.add(this.Element);
         }
-        else if (this.SelectedCamera == 3)
+        else if (keyboardState.pressed("3"))
         {
+            // Tampon kamerası
+            this.SelectedCamera = 3;
+
             // Kemaranın, arabanın pozisyonuna göre alacağı bağıl konumunu yazıyoruz
             // Burada kamerayı arabanın tamponuna yerleştirdik
-            var relativeCameraOffset = new THREE.Vector3(0, 0, -5);
+            var relativeCameraOffset = new THREE.Vector3(0, -0.5, -3.5);
 
             // Kemaranın baktığı hedefin, arabanın pozisyonuna göre alacağı bağıl konumunu yazıyoruz
-            // Burada hedef noktası olarak arabanın 6 metre ilerisini verdik
-            var relativeTargetOffset = new THREE.Vector3(0, 0, -6);
-
-            // Belirttiğimiz bağıl konumların sahnedeki gerçek konum karşılıklarını buluyoruz
-            var cameraOffset = relativeCameraOffset.applyMatrix4(car.Element.matrixWorld);
-            var targetOffset = relativeTargetOffset.applyMatrix4(car.Element.matrixWorld);
+            // Burada hedef noktası olarak dümdüz ileriyi verdik
+            var relativeTargetOffset = new THREE.Vector3(0, -0.5, -5);
 
             // Kamerayı hesaplanan noktaya taşıyoruz
-            this.Element.position.set(cameraOffset.x, cameraOffset.y, cameraOffset.z);
+            this.Element.position.copy(relativeCameraOffset);
 
             // Kameranın hesaplanan noktaya bakmasını sağlıyoruz
-            this.Element.lookAt(targetOffset);
+            this.Element.lookAt(relativeTargetOffset);
+
+            // Kamerayı, arabanın grubuna ekliyoruz. Böylece hiyerarşi sebebiyle, araba hareket ettikçe kamera da hareket edecek
+            car.Element.add(this.Element);
         }
-        else if (this.SelectedCamera == 4)
+        else if (keyboardState.pressed("4"))
         {
+            // Ön kaput üstü kamerası
+            this.SelectedCamera = 4;
+
             // Kemaranın, arabanın pozisyonuna göre alacağı bağıl konumunu yazıyoruz
-            // Burada kamerayı arabanın ön kaputunun üstüne yerleştirdik
-            var relativeCameraOffset = new THREE.Vector3(0, 0.5, -2);
+            // Burada kamerayı arabanın ön kaputunun üzerine yerleştirdik
+            var relativeCameraOffset = new THREE.Vector3(0, -0.25, -2.8);
 
             // Kemaranın baktığı hedefin, arabanın pozisyonuna göre alacağı bağıl konumunu yazıyoruz
-            // Burada hedef noktası olarak arabanın 4 metre ilerisini verdik
-            var relativeTargetOffset = new THREE.Vector3(0, 0, -4);
-
-            // Belirttiğimiz bağıl konumların sahnedeki gerçek konum karşılıklarını buluyoruz
-            var cameraOffset = relativeCameraOffset.applyMatrix4(car.Element.matrixWorld);
-            var targetOffset = relativeTargetOffset.applyMatrix4(car.Element.matrixWorld);
+            // Burada hedef noktası olarak hafif yere doğru ileriyi verdik
+            var relativeTargetOffset = new THREE.Vector3(0, -0.9, -5);
 
             // Kamerayı hesaplanan noktaya taşıyoruz
-            this.Element.position.set(cameraOffset.x, cameraOffset.y, cameraOffset.z);
+            this.Element.position.copy(relativeCameraOffset);
 
             // Kameranın hesaplanan noktaya bakmasını sağlıyoruz
-            this.Element.lookAt(targetOffset);
-        }
-        else if (this.SelectedCamera == 5)
-        {
-            // Kamerayı yerden 10 santim yukarıya yerleştiriyoruz
-            this.Element.position.set(-10, 0.1, -10);
+            this.Element.lookAt(relativeTargetOffset);
 
+            // Kamerayı, arabanın grubuna ekliyoruz. Böylece hiyerarşi sebebiyle, araba hareket ettikçe kamera da hareket edecek
+            car.Element.add(this.Element);
+        }
+        else if (keyboardState.pressed("5"))
+        {
+            // Alçak perspektif kamera
+            this.SelectedCamera = 5;
+
+            // İlk dört kamera sebebiye kamerayı arabanın grubuna eklenme ihtimaline karşın, gruptan çıkartıyoruz ki araba ile birlikte hareket etmesin
+            car.Element.remove(this.Element);
+
+            // Kamerayı zemine yerleştiriyoruz
+            this.Element.position.set(-10, 0.1, -10);
+        }
+        else if (keyboardState.pressed("6"))
+        {
+            // Yüksek perspektif kamera
+            this.SelectedCamera = 6;
+
+            // İlk dört kamera sebebiye kamerayı arabanın grubuna eklenme ihtimaline karşın, gruptan çıkartıyoruz ki araba ile birlikte hareket etmesin
+            car.Element.remove(this.Element);
+
+            // Kamerayı yerden 5 metre yukarıya yerleştiriyoruz
+            this.Element.position.set(-10, 5, -10);
+        }
+    },
+    SetCameraTarget: function (car)
+    {
+      if (this.SelectedCamera == 5)
+        {
             // Kameranın direk arabaya bakmasını sağlıyoruz
             this.Element.lookAt(car.Element.position);
         }
         else if (this.SelectedCamera == 6)
         {
-            // Kamerayı yerden 5 metre yukarıya yerleştiriyoruz
-            this.Element.position.set(-10, 5, -10);
-
             // Kameranın direk arabaya bakmasını sağlıyoruz
             this.Element.lookAt(car.Element.position);
         }
