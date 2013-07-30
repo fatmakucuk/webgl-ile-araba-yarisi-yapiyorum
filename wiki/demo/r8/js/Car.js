@@ -69,8 +69,6 @@
 
         jsonLoader.load("models/CarWheel.js", this.CarWheelModelLoaded);
 
-        jsonLoader.load("models/CarBreak.js", this.CarBreakModelLoaded);
-
         // Açılışta arabayı biraz sağa çekiyoruz ve şık dursun diye 45 derece çeviriyoruz
         this.Element.position.set(10, 1.07, 0);
 
@@ -181,6 +179,12 @@
 
         // Yüklemesi beklenen model sayısını bir azaltıyoruz
         this.car.RemainingModelCount--;
+
+        // CarBreakModelLoaded metodu, WheelContainer nesnelerini kullandığı için bu metodu başlangıçta
+        // değil, içinde bulunduğumuz metot tamamlandıktan sonra çağırıyoruz.
+        var jsonLoader = new THREE.JSONLoader();
+
+        jsonLoader.load("models/CarBreak.js", this.car.CarBreakModelLoaded);
     },
     CarBreakModelLoaded: function (geometry, materials)
     {
