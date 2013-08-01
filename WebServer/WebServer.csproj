@@ -72,11 +72,20 @@
     <Content Include="libs\threex.KeyboardState.js" />
     <Content Include="models\CarBody.js" />
     <Content Include="models\CarWheel.js" />
+    <Content Include="resources\asphalt.png" />
+    <Content Include="resources\clouds.jpg" />
+    <Content Include="resources\grass.jpg" />
+    <Content Include="texture\asphalt.png" />
+    <Content Include="texture\clouds.jpg" />
+    <Content Include="texture\grass.jpg" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="resources\CarBreak.blend" />
+    <Content Include="resources\RaceTrack.blend" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="resources\CarBody.blend" />
     <Content Include="resources\CarWheel.blend" />
