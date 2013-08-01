@@ -5,10 +5,10 @@
     {
         var aspectRatio = $("#Container").width() / $("#Container").height();
 
-        // 45mm'lik bir kamera kullanıyoruz. Görüş mesafesi 2km
-        this.Element = new THREE.PerspectiveCamera(45, aspectRatio, 0.01, 2000);
+        // 45mm'lik bir kamera kullanıyoruz. Görüş mesafesi 8km
+        this.Element = new THREE.PerspectiveCamera(45, aspectRatio, 0.01, 8000);
 
-        this.Element.position.set(-10, 5, -10);
+        this.Element.position.set(120, 5, -120);
     },
     Animate: function (keyboardState, car)
     {
@@ -117,7 +117,7 @@
             car.Element.remove(this.Element);
 
             // Kamerayı zemine yerleştiriyoruz
-            this.Element.position.set(-10, 0.1, -10);
+            this.Element.position.set(120, 0.1, -135);
         }
         else if (keyboardState.pressed("6"))
         {
@@ -128,7 +128,7 @@
             car.Element.remove(this.Element);
 
             // Kamerayı yerden 5 metre yukarıya yerleştiriyoruz
-            this.Element.position.set(-10, 5, -10);
+            this.Element.position.set(120, 5, -120);
         }
     },
     SetCameraTarget: function (car)

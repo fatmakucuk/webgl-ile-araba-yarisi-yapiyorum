@@ -93,7 +93,7 @@
 
     function RemoveSplashScreen()
     {
-        if (car.RemainingModelCount == 0)
+        if (car.RemainingModelCount == 0 && ground.RemainingModelCount == 0)
         {
             // Yüklenmesi beklenen model sayısı sıfıra ulaşınca Splash Screen'i kaldırıyoruz
             $("#SplashScreen").remove();

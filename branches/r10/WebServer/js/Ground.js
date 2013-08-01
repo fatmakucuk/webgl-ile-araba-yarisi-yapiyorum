@@ -1,16 +1,33 @@
 ﻿can.Construct("CarGame.Ground", {}, {
     Element: null,
+
+    // Yüklemesi beklenen model sayısı
+    RemainingModelCount: 1,
+
     init: function ()
     {
-        // ileride, üzerinde ağaçların ve diğer güzelliklerin bulunduğu pistimizi içerecek olacan
-        // 1km x 1km boyutlarındaki yüzeyiğimizi tanımlıyoruz ve rengini gri renge boyuyoruz
-        this.Element = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000, 1, 1),
-                                      new THREE.MeshLambertMaterial({ color: 0x777777 }));
+        this.Element = new THREE.Object3D();
 
-        // Yüzey sahneye dik olarak eklendiğinden, 90 derece yana yatırıyoruz
-        this.Element.rotation.x = -1 * Math.PI / 2;
+        var jsonLoader = new THREE.JSONLoader();
+
+        // Yarış pisti modelimizi yüklüyoruz
+        jsonLoader.load("models/RaceTrack.js", this.RaceTrackModelLoaded, "/texture");
 
         // Yüzeyin üzerine gölge düşeceğini belirtiyoruz
         this.Element.receiveShadow = true;
+
+    },
+    RaceTrackModelLoaded: function (geometry, materials)
+    {
+        // RaceTrack.js dosyasının yüklenmesi tamamlandığı zaman bu metot işletilir
+        // Yüklenen modeli nesnemize ekliyoruz
+        var material = new THREE.MeshFaceMaterial(materials);
+
+        var raceTrack = new THREE.Mesh(geometry, material);
+
+        this.ground.Element.add(raceTrack);
+
+        // Yüklemesi beklenen model sayısını bir azaltıyoruz
+        this.ground.RemainingModelCount--
     }
 });

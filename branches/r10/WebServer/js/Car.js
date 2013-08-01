@@ -70,7 +70,7 @@
         jsonLoader.load("models/CarWheel.js", this.CarWheelModelLoaded);
 
         // Açılışta arabayı biraz sağa çekiyoruz ve şık dursun diye 45 derece çeviriyoruz
-        this.Element.position.set(10, 1.07, 0);
+        this.Element.position.set(160, 1.07, -70);
 
         this.Element.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 4);
     },
