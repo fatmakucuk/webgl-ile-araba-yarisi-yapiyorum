@@ -11,7 +11,7 @@
         var jsonLoader = new THREE.JSONLoader();
 
         // Yarış pisti modelimizi yüklüyoruz
-        jsonLoader.load("models/RaceTrack.js", this.RaceTrackModelLoaded, "/texture");
+        jsonLoader.load("models/RaceTrack.js", this.RaceTrackModelLoaded, "texture");
 
         // Yüzeyin üzerine gölge düşeceğini belirtiyoruz
         this.Element.receiveShadow = true;
