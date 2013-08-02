@@ -38,7 +38,7 @@
         light = new CarGame.Light(scene);
 
         scene.Add(light);
-
+        
 
         // 3D dünyamızın sınırlarını belirleyen küpümüzü sahneye ekliyoruz
         skyBox = new CarGame.SkyBox();
@@ -78,8 +78,8 @@
         // Kemaramıza, klavyenin ve arabanın durumuna göre gerekli aksiyonları almasını söylüyoruz
         camera.Animate(keyboardState, car);
 
-        // Işığımıza, arabanın durumuna göre gerekli aksiyonları almasını söylüyoruz
-        light.Animate(car);
+        // Işığımıza, klavyenin ve arabanın durumuna göre gerekli aksiyonları almasını söylüyoruz
+        light.Animate(keyboardState, car);
 
         // Kameranın gözünden sahnemizi Render ettiriyoruz
         scene.Render(camera.Element);

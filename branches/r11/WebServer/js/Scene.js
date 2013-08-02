@@ -79,7 +79,7 @@
         KeyboardHint.css("position", "absolute");
         KeyboardHint.css("left", "10px");
         KeyboardHint.css("top", "250px");
-        KeyboardHint.css("color", "#660000");
+        KeyboardHint.css("color", "#ffff00");
 
         KeyboardHint.append("Kontrol Tuşları<br>");
         KeyboardHint.append("----------------------------------------------<br>");
@@ -92,6 +92,9 @@
         KeyboardHint.append("4 : Ön kaput üstü kamerası<br>");
         KeyboardHint.append("5 : Alçak perspektif kamera<br>");
         KeyboardHint.append("6 : Yüksek perspektif kamera<br>");
+        KeyboardHint.append("<br>");
+        KeyboardHint.append("d : Gündüz ışıklandırması<br>");
+        KeyboardHint.append("n : Gece ışıklandırması<br>");
 
     },
     AddTachometer: function ()

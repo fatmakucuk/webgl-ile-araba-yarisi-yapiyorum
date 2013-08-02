@@ -1,15 +1,16 @@
 ﻿can.Construct("CarGame.Light", {}, {
     Element: null,
     DirectionalLight: null,
+    AmbientLight: null,
     init: function ()
     {
         // Işık grubumuz
         this.Element = new THREE.Object3D();
 
         // Gölge düşüren Spot ışığımız
-        this.DirectionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
+        this.DirectionalLight = new THREE.DirectionalLight(0xffffff, 2);
 
-        this.DirectionalLight.position.set(0, 500, 0);
+        this.DirectionalLight.position.set(500, 500, 500);
 
         this.DirectionalLight.castShadow = true;
 
@@ -32,14 +33,32 @@
         
 
         // Sahne ışığımız
-        var hemisphereLight = new THREE.HemisphereLight(0x454545, 0x454545, 2);
-
-        this.Element.add(hemisphereLight);
+        this.AmbientLight = new THREE.AmbientLight(0x454545);
+        
+        this.Element.add(this.AmbientLight);
     },
-    Animate: function (car)
+    Animate: function (keyboardState, car)
     {
         // Işığın sahnedeki hedefini, arabanın konumuna göre ayarlıyoruz
         this.SetLightTarget(car);
+
+        this.HandleKeyboard(keyboardState);
+    },
+    HandleKeyboard: function (keyboardState)
+    {
+        if (keyboardState.pressed("n"))
+        {
+            // Gece modu için ışığı kısıyoruz
+            this.DirectionalLight.intensity = 0.2;
+            this.AmbientLight.visible = false;
+        }
+        
+        if (keyboardState.pressed("d"))
+        {
+            // Gündüz modu için ışığı açıyoruz
+            this.DirectionalLight.intensity = 2;
+            this.AmbientLight.visible = true;
+        }
     },
     SetLightTarget: function (car)
     {
