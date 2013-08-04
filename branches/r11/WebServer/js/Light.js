@@ -1,4 +1,8 @@
-﻿can.Construct("CarGame.Light", {}, {
+﻿/// <reference path="../libs/jquery.min.js" />
+/// <reference path="../libs/can.jquery.min.js" />
+/// <reference path="../libs/three.min.js" />
+
+can.Construct("CarGame.Light", {}, {
     Element: null,
     DirectionalLight: null,
     AmbientLight: null,
@@ -30,8 +34,8 @@
         this.DirectionalLight.shadowCameraBottom = -100;
 
         this.Element.add(this.DirectionalLight);
+       
         
-
         // Sahne ışığımız
         this.AmbientLight = new THREE.AmbientLight(0x454545);
         

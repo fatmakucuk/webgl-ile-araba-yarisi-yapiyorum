@@ -1,4 +1,8 @@
-﻿can.Construct("CarGame.Scene", {}, {
+﻿/// <reference path="../libs/jquery.min.js" />
+/// <reference path="../libs/can.jquery.min.js" />
+/// <reference path="../libs/three.min.js" />
+
+can.Construct("CarGame.Scene", {}, {
     Renderer: null,
     Element: null,
     init: function (stats)
