@@ -22,6 +22,7 @@ can.Construct("CarGame.Car", {}, {
     BackRightWheelContainer: null,
     FrontLight: null,
     BackLight: null,
+    RearMirrorCamera: null,
 
     // Sabitlerimiz
     NONE: 0,
@@ -83,6 +84,14 @@ can.Construct("CarGame.Car", {}, {
         this.Element.position.set(160, 1.07, -70);
 
         this.Element.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 4);
+
+        // Dikiz aynasındaki görüntüyü sağlayacak kamerayı, arabanın hemen üzerine yerleştiriyoruz ve geriye doğru bakmasını sağlıyoruz
+        this.RearMirrorCamera = new THREE.PerspectiveCamera(45, 400 / 150, 0.01, 200);
+        this.RearMirrorCamera.position.set(0, 0, 0);
+        this.RearMirrorCamera.lookAt(new THREE.Vector3(0, 0, 5));
+
+        // Ardından kamerayı arabanın 3D grubu içerisine yerleştiriyoruz ki, araba hareket ettiğinde kamera da aynı şekilde hareket etsin
+        this.Element.add(this.RearMirrorCamera);
     },
     CarBodyModelLoaded: function (geometry, materials)
     {

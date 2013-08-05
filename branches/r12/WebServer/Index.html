@@ -81,8 +81,10 @@
         // Işığımıza, klavyenin ve arabanın durumuna göre gerekli aksiyonları almasını söylüyoruz
         light.Animate(keyboardState, car);
 
-        // Kameranın gözünden sahnemizi Render ettiriyoruz
-        scene.Render(camera.Element);
+        
+        // Asıl ve dikiz aynası kameraları gözünden sahnemizi Render ettiriyoruz
+        scene.Render(camera.Element, car.RearMirrorCamera);
+
 
         //FPS istatistiklerini Update ediyoruz
         stats.update();
