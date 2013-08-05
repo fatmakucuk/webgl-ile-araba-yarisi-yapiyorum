@@ -23,10 +23,15 @@ can.Construct("CarGame.Scene", {}, {
 
         this.PrepareScene();
     },
-    Render: function (camera)
+    Render: function (camera, RearMirrorCamera)
     {
-        // Belirtilen kameranın gözünden sahne Render ediliyor
+        // Ekranın tamamını Viewport olarak seçip, asıl kemara görüntümüzü bu alana Render ettiriyoruz
+        this.Renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
         this.Renderer.render(this.Element, camera);
+
+        // Ardından ekranda dikiz aynası için ayırdığımız kısmı Viewport olarak seçip, dikiz aynası kemara görüntümüzü bu alana Render ettiriyoruz
+        this.Renderer.setViewport(window.innerWidth / 2 - 200, window.innerHeight - 150, 400, 150);
+        this.Renderer.render(this.Element, RearMirrorCamera);
     },
     Add: function (object)
     {
@@ -57,7 +62,6 @@ can.Construct("CarGame.Scene", {}, {
         splashScreenText.css("verticalAlign", "middle");
         splashScreenText.css("textAlign", "center");
         splashScreenText.css("color", "#ffffff");
-        
     },
     AddRenderContainer: function ()
     {
@@ -75,7 +79,7 @@ can.Construct("CarGame.Scene", {}, {
     },
     AddKeyboardHint: function ()
     {
-        // HTML'e, klavyedeki geçerli tuşları gösteren bir Div ekliyoruz
+        // HTML'e, klavyedeki geçerli tuşları gösteren bir Span ekliyoruz
         $("body").append("<span id='KeyboardHint' />");
 
         var KeyboardHint = $("#KeyboardHint");
@@ -99,11 +103,10 @@ can.Construct("CarGame.Scene", {}, {
         KeyboardHint.append("<br>");
         KeyboardHint.append("d : Gündüz ışıklandırması<br>");
         KeyboardHint.append("n : Gece ışıklandırması<br>");
-
     },
     AddTachometer: function ()
     {
-        // HTML'e, araç motor devir göstergesi yerine geçecek bir Div ekliyoruz
+        // HTML'e, araç motor devir göstergesi yerine geçecek bir Span ekliyoruz
         $("body").append("<span id='Tachometer' />");
 
         var Tachometer = $("#Tachometer");
@@ -115,7 +118,7 @@ can.Construct("CarGame.Scene", {}, {
     },
     AddSpeedometer: function ()
     {
-        // HTML'e, araç hız göstergesi yerine geçecek bir Div ekliyoruz
+        // HTML'e, araç hız göstergesi yerine geçecek bir Span ekliyoruz
         $("body").append("<span id='Speedometer' />");
 
         var Speedometer = $("#Speedometer");
@@ -127,7 +130,7 @@ can.Construct("CarGame.Scene", {}, {
     },
     AddShiftIndicator: function ()
     {
-        // HTML'e, araç vites göstergesi yerine geçecek bir Div ekliyoruz
+        // HTML'e, araç vites göstergesi yerine geçecek bir Span ekliyoruz
         $("body").append("<span id='ShiftIndicator' />");
 
         var ShiftIndicator = $("#ShiftIndicator");
@@ -161,12 +164,18 @@ can.Construct("CarGame.Scene", {}, {
 
         this.Renderer.shadowMapEnabled = true;
 
+        // Dikiz aynası için bir animasyonda iki Viewport kullanacağımız için, her Render işleminde otomatik temizleme özelliğini kapatıyoruz
+        // Aksi takdirde dikiz aynası için gerçekleştirilen Render işleminde, asıl kamera görüntüsü kaybolurdu
+        this.Renderer.autoClear = false;
+
         // Gölgelerin daha yumuşak Render edilmesini sağlıyoruz
         this.Renderer.shadowMapSoft = true;
         this.Renderer.shadowMapType = THREE.PCFSoftShadowMap
 
         // Render çıktısını gösterecek yüzeyi Container Div içerisine yerleştiriyoruz
         container.append(this.Renderer.domElement);
+
+
 
         // Sahnemizi tanımlıyoruz
         this.Element = new THREE.Scene();
