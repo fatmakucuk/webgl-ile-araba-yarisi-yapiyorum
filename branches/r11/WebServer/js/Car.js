@@ -22,8 +22,6 @@ can.Construct("CarGame.Car", {}, {
     BackRightWheelContainer: null,
     FrontLight: null,
     BackLight: null,
-    FrontLeftLight: null,
-    FrontRightLight: null,
 
     // Sabitlerimiz
     NONE: 0,
@@ -35,7 +33,7 @@ can.Construct("CarGame.Car", {}, {
     RIGHT: 4,
 
     // Yüklemesi beklenen model sayısı
-    RemainingModelCount: 3,
+    RemainingModelCount: 5,
 
     // Arabanın güncel vites değeri
     Shift: 0,
@@ -279,6 +277,9 @@ can.Construct("CarGame.Car", {}, {
 
         this.car.CarBodyLightContainer.add(this.car.BackLight);
 
+        // Yüklemesi beklenen model sayısını bir azaltıyoruz
+        this.car.RemainingModelCount--;
+
         // Arabanın ön ışık modelini yükleme işlemini başlatıyoruz
         var jsonLoader = new THREE.JSONLoader();
 
@@ -293,6 +294,9 @@ can.Construct("CarGame.Car", {}, {
         this.car.FrontLight = new THREE.Mesh(geometry, material);
 
         this.car.CarBodyLightContainer.add(this.car.FrontLight);
+
+        // Yüklemesi beklenen model sayısını bir azaltıyoruz
+        this.car.RemainingModelCount--;
 
         // Başlangıçta ışıklarımızı kapatıyoruz
         this.car.LightOff();
@@ -712,6 +716,7 @@ can.Construct("CarGame.Car", {}, {
     },
     LightOn: function ()
     {
+        // Arabanın ışıklarını yakmak için, ışık modellerini uygun renkli MeshBasicMaterial ile kaplıyoruz
         this.FrontLight.material = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
         this.BackLight.material = new THREE.MeshBasicMaterial({ color: 0x990000 });
@@ -720,6 +725,7 @@ can.Construct("CarGame.Car", {}, {
     },
     LightOff: function ()
     {
+        // Arabanın ışıklarını söndürmek için, ışık modellerini gri renkli MeshBasicMaterial ile kaplıyoruz
         this.FrontLight.material = new THREE.MeshPhongMaterial({ color: 0x777777 });
 
         this.BackLight.material = new THREE.MeshPhongMaterial({ color: 0x777777 });
@@ -728,10 +734,12 @@ can.Construct("CarGame.Car", {}, {
     },
     TurnBreakLightOn: function ()
     {
+        // Arabanın fren ışıklarını yakmak için, arka ışık modelini kırmızı renkli MeshBasicMaterial ile kaplıyoruz
         this.BackLight.material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
     },
     TurnBreakLightOff: function ()
     {
+        // Arabanın fren ışıklarını söndürmek için, arka ışık modelini duruma göre koyu kırmızı veya gri renkli MeshBasicMaterial ile kaplıyoruz
         if (this.BackLight != null)
         {
             if (this.LightsOn)

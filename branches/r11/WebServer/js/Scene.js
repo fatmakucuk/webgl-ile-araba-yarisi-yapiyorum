@@ -111,7 +111,7 @@ can.Construct("CarGame.Scene", {}, {
         Tachometer.css("position", "absolute");
         Tachometer.css("left", (window.innerWidth - 120) + "px");
         Tachometer.css("top", "20px");
-        Tachometer.css("color", "#ff00ff");
+        Tachometer.css("color", "#ffff00");
     },
     AddSpeedometer: function ()
     {
@@ -123,7 +123,7 @@ can.Construct("CarGame.Scene", {}, {
         Speedometer.css("position", "absolute");
         Speedometer.css("left", (window.innerWidth - 120) + "px");
         Speedometer.css("top", "50px");
-        Speedometer.css("color", "#ff00ff");
+        Speedometer.css("color", "#ffff00");
     },
     AddShiftIndicator: function ()
     {
@@ -135,7 +135,7 @@ can.Construct("CarGame.Scene", {}, {
         ShiftIndicator.css("position", "absolute");
         ShiftIndicator.css("left", (window.innerWidth - 120) + "px");
         ShiftIndicator.css("top", "80px");
-        ShiftIndicator.css("color", "#ff00ff");
+        ShiftIndicator.css("color", "#ffff00");
     },
     AddStatsGadget: function ()
     {
