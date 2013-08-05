@@ -1,4 +1,8 @@
-﻿can.Construct("CarGame.SkyBox", {}, {
+﻿/// <reference path="../libs/jquery.min.js" />
+/// <reference path="../libs/can.jquery.min.js" />
+/// <reference path="../libs/three.min.js" />
+
+can.Construct("CarGame.SkyBox", {}, {
     Element: null,
     init: function ()
     {

@@ -1,4 +1,8 @@
-﻿can.Construct("CarGame.Camera", {}, {
+﻿/// <reference path="../libs/jquery.min.js" />
+/// <reference path="../libs/can.jquery.min.js" />
+/// <reference path="../libs/three.min.js" />
+
+can.Construct("CarGame.Camera", {}, {
     Element: null,
     SelectedCamera: 6,
     init: function ()
