@@ -1,4 +1,8 @@
-﻿can.Construct("CarGame.Scene", {}, {
+﻿/// <reference path="../libs/jquery.min.js" />
+/// <reference path="../libs/can.jquery.min.js" />
+/// <reference path="../libs/three.min.js" />
+
+can.Construct("CarGame.Scene", {}, {
     Renderer: null,
     Element: null,
     init: function (stats)
@@ -79,7 +83,7 @@
         KeyboardHint.css("position", "absolute");
         KeyboardHint.css("left", "10px");
         KeyboardHint.css("top", "250px");
-        KeyboardHint.css("color", "#660000");
+        KeyboardHint.css("color", "#ffff00");
 
         KeyboardHint.append("Kontrol Tuşları<br>");
         KeyboardHint.append("----------------------------------------------<br>");
@@ -92,6 +96,9 @@
         KeyboardHint.append("4 : Ön kaput üstü kamerası<br>");
         KeyboardHint.append("5 : Alçak perspektif kamera<br>");
         KeyboardHint.append("6 : Yüksek perspektif kamera<br>");
+        KeyboardHint.append("<br>");
+        KeyboardHint.append("d : Gündüz ışıklandırması<br>");
+        KeyboardHint.append("n : Gece ışıklandırması<br>");
 
     },
     AddTachometer: function ()
@@ -104,7 +111,7 @@
         Tachometer.css("position", "absolute");
         Tachometer.css("left", (window.innerWidth - 120) + "px");
         Tachometer.css("top", "20px");
-        Tachometer.css("color", "#ff00ff");
+        Tachometer.css("color", "#ffff00");
     },
     AddSpeedometer: function ()
     {
@@ -116,7 +123,7 @@
         Speedometer.css("position", "absolute");
         Speedometer.css("left", (window.innerWidth - 120) + "px");
         Speedometer.css("top", "50px");
-        Speedometer.css("color", "#ff00ff");
+        Speedometer.css("color", "#ffff00");
     },
     AddShiftIndicator: function ()
     {
@@ -128,7 +135,7 @@
         ShiftIndicator.css("position", "absolute");
         ShiftIndicator.css("left", (window.innerWidth - 120) + "px");
         ShiftIndicator.css("top", "80px");
-        ShiftIndicator.css("color", "#ff00ff");
+        ShiftIndicator.css("color", "#ffff00");
     },
     AddStatsGadget: function ()
     {

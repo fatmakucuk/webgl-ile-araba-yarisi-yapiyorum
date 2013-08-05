@@ -1,7 +1,13 @@
-﻿can.Construct("CarGame.Car", {}, {
+﻿/// <reference path="../libs/jquery.min.js" />
+/// <reference path="../libs/can.jquery.min.js" />
+/// <reference path="../libs/three.min.js" />
+
+can.Construct("CarGame.Car", {}, {
     Element: null,
     CarBody: null,
-    CarBodyContainer: null,
+    CarBodyContainerForBreakBending: null,
+    CarBodyContainerForTurnBending: null,
+    CarBodyLightContainer: null,
     FrontLeftWheel: null,
     FrontRightWheel: null,
     BackLeftWheel: null,
@@ -14,6 +20,8 @@
     FrontRightWheelContainer: null,
     BackLeftWheelContainer: null,
     BackRightWheelContainer: null,
+    FrontLight: null,
+    BackLight: null,
 
     // Sabitlerimiz
     NONE: 0,
@@ -25,7 +33,7 @@
     RIGHT: 4,
 
     // Yüklemesi beklenen model sayısı
-    RemainingModelCount: 3,
+    RemainingModelCount: 5,
 
     // Arabanın güncel vites değeri
     Shift: 0,
@@ -42,6 +50,9 @@
 
     // Ön tekerlek yönleri
     FrontWheelWay: 0,
+
+    // Işıkların açıklık durumu
+    LightsOn: true,
 
     // Arabanın motor bilgileri
     // Şimdilik sadece max. devir değerini barındırıyor
@@ -63,11 +74,10 @@
     {
         this.Element = new THREE.Object3D();
 
+        // Arabanın gövde modelini yükleme işlemini başlatıyoruz
         var jsonLoader = new THREE.JSONLoader();
 
         jsonLoader.load("models/CarBody.js", this.CarBodyModelLoaded);
-
-        jsonLoader.load("models/CarWheel.js", this.CarWheelModelLoaded);
 
         // Açılışta arabayı biraz sağa çekiyoruz ve şık dursun diye 45 derece çeviriyoruz
         this.Element.position.set(160, 1.07, -70);
@@ -80,24 +90,37 @@
         // Yüklenen modeli nesnemize ekliyoruz
         var material = new THREE.MeshFaceMaterial(materials);
 
-        this.car.CarBodyContainer = new THREE.Object3D();
+        this.car.CarBodyContainerForTurnBending = new THREE.Object3D();
 
         // Arabanın dönüş ekseni olan pivot noktasını arka aksın ortasına getirmek için gövdeyi ileri alıyoruz
-        this.car.CarBodyContainer.position.set(0, -0.95, -1.5);
+        this.car.CarBodyContainerForTurnBending.position.set(0, -0.95, -1.5);
+
+        // Modelleme yan yapıldığı için arabayı 90 derece çeviriyoruz
+        this.car.CarBodyContainerForTurnBending.rotateOnAxis(new THREE.Vector3(0, 1, 0), -1 * Math.PI / 2);
+
+        this.car.CarBodyContainerForBreakBending = new THREE.Object3D();
+
+        this.car.CarBodyContainerForTurnBending.add(this.car.CarBodyContainerForBreakBending);
+
+        this.car.CarBodyLightContainer = new THREE.Object3D();
+
+        this.car.CarBodyContainerForBreakBending.add(this.car.CarBodyLightContainer);
 
         this.car.CarBody = new THREE.Mesh(geometry, material);
 
         this.car.CarBody.castShadow = true;
 
-        // Modelleme yan yapıldığı için arabayı 90 derece çeviriyoruz
-        this.car.CarBody.rotateOnAxis(new THREE.Vector3(0, 1, 0), -1 * Math.PI / 2);
+        this.car.CarBodyLightContainer.add(this.car.CarBody);
 
-        this.car.CarBodyContainer.add(this.car.CarBody);
-
-        this.car.Element.add(this.car.CarBodyContainer);
+        this.car.Element.add(this.car.CarBodyContainerForTurnBending);
 
         // Yüklemesi beklenen model sayısını bir azaltıyoruz
         this.car.RemainingModelCount--
+
+        // Arabanın tekerlek modelini yükleme işlemini başlatıyoruz
+        var jsonLoader = new THREE.JSONLoader();
+
+        jsonLoader.load("models/CarWheel.js", this.car.CarWheelModelLoaded);
     },
     CarWheelModelLoaded: function (geometry, materials)
     {
@@ -180,8 +203,7 @@
         // Yüklemesi beklenen model sayısını bir azaltıyoruz
         this.car.RemainingModelCount--;
 
-        // CarBreakModelLoaded metodu, WheelContainer nesnelerini kullandığı için bu metodu başlangıçta
-        // değil, içinde bulunduğumuz metot tamamlandıktan sonra çağırıyoruz.
+        // Arabanın fren tertibatı modelini yükleme işlemini başlatıyoruz
         var jsonLoader = new THREE.JSONLoader();
 
         jsonLoader.load("models/CarBreak.js", this.car.CarBreakModelLoaded);
@@ -239,9 +261,52 @@
 
         // Yüklemesi beklenen model sayısını bir azaltıyoruz
         this.car.RemainingModelCount--;
+
+        // Arabanın arka ışık modelini yükleme işlemini başlatıyoruz
+        var jsonLoader = new THREE.JSONLoader();
+
+        jsonLoader.load("models/BackLight.js", this.car.BackLightModelLoaded);
     },
+    BackLightModelLoaded: function (geometry, materials)
+    {
+        // BackLight.js dosyasının yüklenmesi tamamlandığı zaman bu metot işletilir
+        // Yüklenen modeli nesnemize ekliyoruz
+        var material = new THREE.MeshFaceMaterial(materials);
+
+        this.car.BackLight = new THREE.Mesh(geometry, material);
+
+        this.car.CarBodyLightContainer.add(this.car.BackLight);
+
+        // Yüklemesi beklenen model sayısını bir azaltıyoruz
+        this.car.RemainingModelCount--;
+
+        // Arabanın ön ışık modelini yükleme işlemini başlatıyoruz
+        var jsonLoader = new THREE.JSONLoader();
+
+        jsonLoader.load("models/FrontLight.js", this.car.FrontLightModelLoaded);
+    },
+    FrontLightModelLoaded: function (geometry, materials)
+    {
+        // FrontLight.js dosyasının yüklenmesi tamamlandığı zaman bu metot işletilir
+        // Yüklenen modeli nesnemize ekliyoruz
+        var material = new THREE.MeshFaceMaterial(materials);
+
+        this.car.FrontLight = new THREE.Mesh(geometry, material);
+
+        this.car.CarBodyLightContainer.add(this.car.FrontLight);
+
+        // Yüklemesi beklenen model sayısını bir azaltıyoruz
+        this.car.RemainingModelCount--;
+
+        // Başlangıçta ışıklarımızı kapatıyoruz
+        this.car.LightOff();
+    },
+
     Animate: function (keyboardState, deltaTime)
     {
+        // Bir önceki animasyon akışında fren ışığı yanıyorsa söndürüyoruz
+        this.TurnBreakLightOff();
+
         // (Gerekliyse) Otomatik vites değişimi yapıyoruz
         this.CheckShiftChange();
 
@@ -250,11 +315,11 @@
         {
             if (this.CarBodyBendingForBreak == this.FRONT)
             {
-                this.CarBody.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * Math.PI / 180);
+                this.CarBodyContainerForBreakBending.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * Math.PI / 180);
             }
             else if (this.CarBodyBendingForBreak == this.BACK)
             {
-                this.CarBody.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 180);
+                this.CarBodyContainerForBreakBending.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 180);
             }
 
             this.CarBodyBendingForBreak = this.NONE;
@@ -265,11 +330,11 @@
         {
             if (this.CarBodyBendingForTurn == this.RIGHT)
             {
-                this.CarBodyContainer.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 90);
+                this.CarBodyContainerForTurnBending.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 90);
             }
             else if (this.CarBodyBendingForTurn == this.LEFT)
             {
-                this.CarBodyContainer.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * Math.PI / 90);
+                this.CarBodyContainerForTurnBending.rotateOnAxis(new THREE.Vector3(1, 0, 0), -1 * Math.PI / 90);
             }
 
             this.CarBodyBendingForTurn = this.NONE;
@@ -407,6 +472,18 @@
             // Arabanın sağa dönmesini sağlıyoruz
             this.TurnRight(handbreak, deltaTime);
         }
+
+        if (keyboardState.pressed("d"))
+        {
+            // Arabanın ışıklarını kapatıyoruz
+            this.LightOff();
+        }
+
+        if (keyboardState.pressed("n"))
+        {
+            // Arabanın ışıklarını açıyoruz
+            this.LightOn();
+        }
     },
     Accelerate: function (deltaTime, direction)
     {
@@ -446,15 +523,18 @@
             {
                 this.CarBodyBendingForBreak = this.FRONT;
 
-                this.CarBody.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 180);
+                this.CarBodyContainerForBreakBending.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 180);
             }
             else if (direction == this.BACKWARD)
             {
                 this.CarBodyBendingForBreak = this.BACK;
 
-                this.CarBody.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * Math.PI / 180);
+                this.CarBodyContainerForBreakBending.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * Math.PI / 180);
             }
         }
+
+        // Fren durumunda fren ışıklarını yakıyoruz
+        this.TurnBreakLightOn();
     },
     Handbreak: function (deltaTime, direction)
     {
@@ -568,7 +648,7 @@
             {
                 this.CarBodyBendingForTurn = this.RIGHT;
 
-                this.CarBodyContainer.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * Math.PI / 90);
+                this.CarBodyContainerForTurnBending.rotateOnAxis(new THREE.Vector3(1, 0, 0), -1 * Math.PI / 90);
             }
         }
 
@@ -608,7 +688,7 @@
             {
                 this.CarBodyBendingForTurn = this.LEFT;
 
-                this.CarBodyContainer.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.PI / 90);
+                this.CarBodyContainerForTurnBending.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 90);
             }
         }
 
@@ -633,6 +713,44 @@
         // Sağdaki tekerlekler 180 derece çevrilmiş olduğu için, tam ters açıda döndürüyoruz
         this.FrontRightWheel.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * angle);
         this.BackRightWheel.rotateOnAxis(new THREE.Vector3(0, 0, 1), -1 * angle);
+    },
+    LightOn: function ()
+    {
+        // Arabanın ışıklarını yakmak için, ışık modellerini uygun renkli MeshBasicMaterial ile kaplıyoruz
+        this.FrontLight.material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+        this.BackLight.material = new THREE.MeshBasicMaterial({ color: 0x990000 });
+
+        this.LightsOn = true;
+    },
+    LightOff: function ()
+    {
+        // Arabanın ışıklarını söndürmek için, ışık modellerini gri renkli MeshBasicMaterial ile kaplıyoruz
+        this.FrontLight.material = new THREE.MeshPhongMaterial({ color: 0x777777 });
+
+        this.BackLight.material = new THREE.MeshPhongMaterial({ color: 0x777777 });
+
+        this.LightsOn = false;
+    },
+    TurnBreakLightOn: function ()
+    {
+        // Arabanın fren ışıklarını yakmak için, arka ışık modelini kırmızı renkli MeshBasicMaterial ile kaplıyoruz
+        this.BackLight.material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    },
+    TurnBreakLightOff: function ()
+    {
+        // Arabanın fren ışıklarını söndürmek için, arka ışık modelini duruma göre koyu kırmızı veya gri renkli MeshBasicMaterial ile kaplıyoruz
+        if (this.BackLight != null)
+        {
+            if (this.LightsOn)
+            {
+                this.BackLight.material = new THREE.MeshBasicMaterial({ color: 0x990000 });
+            }
+            else
+            {
+                this.BackLight.material = new THREE.MeshBasicMaterial({ color: 0x777777 });
+            }
+        }
     },
     WriteCycle: function ()
     {
