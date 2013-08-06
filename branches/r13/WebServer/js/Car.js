@@ -49,8 +49,8 @@ can.Construct("CarGame.Car", {}, {
     CarBodyBendingForBreak: 0,
     CarBodyBendingForTurn: 0,
 
-    // Ön tekerlek yönleri
-    FrontWheelWay: 0,
+    // Ön tekerlek açısı
+    FrontWheelAngle: 0,
 
     // Işıkların açıklık durumu
     LightsOn: true,
@@ -339,31 +339,30 @@ can.Construct("CarGame.Car", {}, {
         {
             if (this.CarBodyBendingForTurn == this.RIGHT)
             {
-                this.CarBodyContainerForTurnBending.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 90);
+                this.CarBodyContainerForTurnBending.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 180);
             }
             else if (this.CarBodyBendingForTurn == this.LEFT)
             {
-                this.CarBodyContainerForTurnBending.rotateOnAxis(new THREE.Vector3(1, 0, 0), -1 * Math.PI / 90);
+                this.CarBodyContainerForTurnBending.rotateOnAxis(new THREE.Vector3(1, 0, 0), -1 * Math.PI / 180);
             }
 
             this.CarBodyBendingForTurn = this.NONE;
         }
 
-        // Eğer arabanın ön tekerlekleri bir önceki animasyonda dönüş sebebiyle döndü ise, eski konumuna geri getiriyoruz
-        if (this.FrontWheelWay != this.NONE)
+        // Eğer arabanın ön tekerlekleri düz konumda değilse ve an itibariyle sol veya sağ tuşlarına basılmıyorsa, tekerlekleri düz konumuna geri getiriyoruz
+        if (!keyboardState.pressed("left") && !keyboardState.pressed("right") && this.FrontWheelAngle != 0)
         {
-            if (this.FrontWheelWay == this.LEFT)
+            var angle = Math.PI / 100;
+
+            if (this.FrontWheelAngle > 0)
             {
-                this.FrontLeftWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), -1 * Math.PI / 10);
-                this.FrontRightWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), -1 * Math.PI / 10);
-            }
-            else if (this.FrontWheelWay == this.RIGHT)
-            {
-                this.FrontLeftWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 10);
-                this.FrontRightWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 10);
+                angle *= -1;
             }
 
-            this.FrontWheelWay = this.NONE;
+            this.FrontWheelAngle += angle;
+
+            this.FrontLeftWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), angle);
+            this.FrontRightWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), angle);
         }
 
 
@@ -632,11 +631,46 @@ can.Construct("CarGame.Car", {}, {
     },
     TurnLeft: function (handbreak, deltaTime)
     {
+        // Hızdan bağımsız şekilde ön tekerlekleri sola doğru çeviriyoruz
+        if (this.FrontWheelAngle < 0.6)
+        {
+            var angle = (Math.PI / 8) * deltaTime;
+
+            // Eğer tekerlek hali hazırda ters tarafa dönük duruyorsa, düzelene kadar daha hızlı çeviriyoruz
+            if (this.FrontWheelAngle < 0)
+            {
+                angle *= 8;
+            }
+
+            this.FrontWheelAngle += angle;
+
+            this.FrontLeftWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), angle);
+            this.FrontRightWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), angle);
+        }
+
         // Eğer araba hareket ediyorsa, dönüş hareketini gerçekleştiriyoruz
         if (this.Speed != 0)
         {
             // Dönüş açısını hesaplıyoruz
-            var angle = (Math.PI / 40) * Math.sqrt(Math.abs(this.Speed)) * deltaTime;
+            var angle = this.FrontWheelAngle * 2 * deltaTime;
+
+            // Suni dönüş görüntüsünü engellemek için çok düşük hızlarda dönüş açısını kademeli olarak düşürüyoruz
+            if (this.Speed < 5)
+            {
+                angle /= 4;
+            }
+            else if (this.Speed < 10)
+            {
+                angle /= 2;
+            }
+            else if (this.Speed < 20)
+            {
+                angle /= 1.5;
+            }
+            else if (this.Speed < 30)
+            {
+                angle /= 1.2;
+            }
 
             // El frenine basılı olduğu takdirde dönüş açısını iki katına çıkarıyoruz
             if (handbreak)
@@ -657,26 +691,52 @@ can.Construct("CarGame.Car", {}, {
             {
                 this.CarBodyBendingForTurn = this.RIGHT;
 
-                this.CarBodyContainerForTurnBending.rotateOnAxis(new THREE.Vector3(1, 0, 0), -1 * Math.PI / 90);
+                this.CarBodyContainerForTurnBending.rotateOnAxis(new THREE.Vector3(1, 0, 0), -1 * Math.PI / 180);
             }
-        }
-
-        // Hızdan bağımsız şekilde ön tekerlekleri sola doğru çeviriyoruz
-        if (this.FrontWheelWay == this.NONE)
-        {
-            this.FrontLeftWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 10);
-            this.FrontRightWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 10);
-
-            this.FrontWheelWay = this.LEFT;
         }
     },
     TurnRight: function (handbreak, deltaTime)
     {
+        // Hızdan bağımsız şekilde ön tekerlekleri sağa doğru çeviriyoruz
+        if (this.FrontWheelAngle > -0.6)
+        {
+            var angle = -1 * (Math.PI / 8) * deltaTime;
+
+            // Eğer tekerlek hali hazırda ters tarafa dönük duruyorsa, düzelene kadar daha hızlı çeviriyoruz
+            if (this.FrontWheelAngle > 0)
+            {
+                angle *= 8;
+            }
+
+            this.FrontWheelAngle += angle;
+
+            this.FrontLeftWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), angle);
+            this.FrontRightWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), angle);
+        }
+
         // Eğer araba hareket ediyorsa, dönüş hareketini gerçekleştiriyoruz
         if (this.Speed != 0)
         {
             // Dönüş açısını hesaplıyoruz
-            var angle = -1 * (Math.PI / 40) * Math.sqrt(Math.abs(this.Speed)) * deltaTime;
+            var angle = this.FrontWheelAngle * 2 * deltaTime;
+
+            // Suni dönüş görüntüsünü engellemek için çok düşük hızlarda dönüş açısını kademeli olarak düşürüyoruz
+            if (this.Speed < 5)
+            {
+                angle /= 4;
+            }
+            else if (this.Speed < 10)
+            {
+                angle /= 2;
+            }
+            else if (this.Speed < 20)
+            {
+                angle /= 1.5;
+            }
+            else if (this.Speed < 30)
+            {
+                angle /= 1.2;
+            }
 
             // El frenine basılı olduğu takdirde dönüş açısını iki katına çıkarıyoruz
             if (handbreak)
@@ -697,17 +757,8 @@ can.Construct("CarGame.Car", {}, {
             {
                 this.CarBodyBendingForTurn = this.LEFT;
 
-                this.CarBodyContainerForTurnBending.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 90);
+                this.CarBodyContainerForTurnBending.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 180);
             }
-        }
-
-        // Hızdan bağımsız şekilde ön tekerlekleri sağa doğru çeviriyoruz
-        if (this.FrontWheelWay == this.NONE)
-        {
-            this.FrontLeftWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), -1 * Math.PI / 10);
-            this.FrontRightWheelContainer.rotateOnAxis(new THREE.Vector3(0, 1, 0), -1 * Math.PI / 10);
-
-            this.FrontWheelWay = this.RIGHT;
         }
     },
     RotateWheels: function (deltaTime)
