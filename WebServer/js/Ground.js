@@ -4,9 +4,11 @@
 
 can.Construct("CarGame.Ground", {}, {
     Element: null,
+    RaceTrackGrass: null,
+    RaceTrackRoad: null,
 
     // Yüklemesi beklenen model sayısı
-    RemainingModelCount: 1,
+    RemainingModelCount: 2,
 
     init: function ()
     {
@@ -14,22 +16,44 @@ can.Construct("CarGame.Ground", {}, {
 
         var jsonLoader = new THREE.JSONLoader();
 
-        // Yarış pisti modelimizi yüklüyoruz
-        jsonLoader.load("models/RaceTrack.js", this.RaceTrackModelLoaded, "texture");
+        // Yarış pistinin çim zemin modelini yüklüyoruz
+        jsonLoader.load("models/RaceTrackGrass.js", this.RaceTrackGrassModelLoaded, "texture");
 
-        // Yüzeyin üzerine gölge düşeceğini belirtiyoruz
-        this.Element.receiveShadow = true;
+        // Yarış pistinin yol modelini yüklüyoruz
+        jsonLoader.load("models/RaceTrackRoad.js", this.RaceTrackRoadModelLoaded, "texture");
 
     },
-    RaceTrackModelLoaded: function (geometry, materials)
+    RaceTrackGrassModelLoaded: function (geometry, materials)
     {
-        // RaceTrack.js dosyasının yüklenmesi tamamlandığı zaman bu metot işletilir
+        // RaceTrackGrass.js dosyasının yüklenmesi tamamlandığı zaman bu metot işletilir
         // Yüklenen modeli nesnemize ekliyoruz
         var material = new THREE.MeshFaceMaterial(materials);
 
-        var raceTrack = new THREE.Mesh(geometry, material);
+        this.ground.RaceTrackGrass = new THREE.Mesh(geometry, material);
 
-        this.ground.Element.add(raceTrack);
+        // Çim ve yol modelleri üst üste gelince titreme olmaması için, çim modelini 3 santim aşağı indiriyoruz
+        this.ground.RaceTrackGrass.position.y -= 0.03;
+
+        // Yüzeyin üzerine gölge düşeceğini belirtiyoruz
+        this.ground.RaceTrackGrass.receiveShadow = true;
+
+        this.ground.Element.add(this.ground.RaceTrackGrass);
+
+        // Yüklemesi beklenen model sayısını bir azaltıyoruz
+        this.ground.RemainingModelCount--
+    },
+    RaceTrackRoadModelLoaded: function (geometry, materials)
+    {
+        // RaceTrackRoad.js dosyasının yüklenmesi tamamlandığı zaman bu metot işletilir
+        // Yüklenen modeli nesnemize ekliyoruz
+        var material = new THREE.MeshFaceMaterial(materials);
+
+        this.ground.RaceTrackRoad = new THREE.Mesh(geometry, material);
+
+        // Yüzeyin üzerine gölge düşeceğini belirtiyoruz
+        this.ground.RaceTrackRoad.receiveShadow = true;
+        
+        this.ground.Element.add(this.ground.RaceTrackRoad);
 
         // Yüklemesi beklenen model sayısını bir azaltıyoruz
         this.ground.RemainingModelCount--
