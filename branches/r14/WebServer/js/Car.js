@@ -23,6 +23,7 @@ can.Construct("CarGame.Car", {}, {
     FrontLight: null,
     BackLight: null,
     RearMirrorCamera: null,
+    ground: null,
 
     // Sabitlerimiz
     NONE: 0,
@@ -55,6 +56,12 @@ can.Construct("CarGame.Car", {}, {
     // Işıkların açıklık durumu
     LightsOn: true,
 
+    // Tekerleklerin asfalt zeminden dışarı çıkması sebebiyle arabaya uygulanacak hız limiti
+    MaxOffRoadSpeed: 9999,
+
+    // Son asfalt zemin kontrolünden bu yana geçen süre
+    CheckOnRoadDeltaTime: 0,
+
     // Arabanın motor bilgileri
     // Şimdilik sadece max. devir değerini barındırıyor
     EngineSpecs: { MaxCycle: 8000 },
@@ -71,8 +78,10 @@ can.Construct("CarGame.Car", {}, {
                  { Shift: "5", ShiftRate: 27.0965, UpCycle: 6500, AfterUpCycle: 5644, DownCycle: 3500, AfterDownCycle: 4405 },
                  { Shift: "6", ShiftRate: 23.5294, UpCycle: null, AfterUpCycle: null, DownCycle: 4000, AfterDownCycle: 4606 }],
 
-    init: function ()
+    init: function (ground)
     {
+        this.ground = ground;
+
         this.Element = new THREE.Object3D();
 
         // Arabanın gövde modelini yükleme işlemini başlatıyoruz
@@ -142,7 +151,7 @@ can.Construct("CarGame.Car", {}, {
 
         this.car.FrontLeftWheelContainer.position.set(-0.8, -0.75, -2.75);
 
-        this.car.FrontLeftWheel = new THREE.Mesh(geometry, material);
+        this.car.FrontLeftWheel = new THREE.Mesh(geometry.clone(), material);
 
         this.car.FrontLeftWheel.castShadow = true;
 
@@ -178,7 +187,7 @@ can.Construct("CarGame.Car", {}, {
         // Arabanın dönüş ekseni olan pivot noktasını arka aksın ortasına getirmek için arka tekerlekleri z = 0'a yerleştiriyoruz
         this.car.BackLeftWheelContainer.position.set(-0.8, -0.75, -0.09);
 
-        this.car.BackLeftWheel = new THREE.Mesh(geometry, material);
+        this.car.BackLeftWheel = new THREE.Mesh(geometry.clone(), material);
 
         this.car.BackLeftWheel.castShadow = true;
 
@@ -313,6 +322,9 @@ can.Construct("CarGame.Car", {}, {
 
     Animate: function (keyboardState, deltaTime)
     {
+        // Arabanın dört tekerleğinin de yolda olup olmadığını kontrol ettiriyoruz
+        this.CheckOnRoad(deltaTime);
+
         // Bir önceki animasyon akışında fren ışığı yanıyorsa söndürüyoruz
         this.TurnBreakLightOff();
 
@@ -411,9 +423,10 @@ can.Construct("CarGame.Car", {}, {
 
         var direction = this.FindDirection();
 
-        if (direction != this.NONE && !keyboardState.pressed("up") && !keyboardState.pressed("down"))
+        if ((direction != this.NONE && !keyboardState.pressed("up") && !keyboardState.pressed("down")) || this.Speed > this.MaxOffRoadSpeed)
         {
-            // Eğer araba durmuyorsa ve ileri-geri tuşlarına basılmıyorsa, arabanın yavaşlamasını sağlıyoruz
+            // Eğer araba durmuyorsa ve ileri-geri tuşlarına basılmıyorsa ya da tekerleklerin yolun dışına çıkması
+            // sebebiyle hız limiti uygulanacaksa arabanın yavaşlamasını sağlıyoruz
             this.SlowDown(deltaTime, direction);
         }
 
@@ -495,28 +508,32 @@ can.Construct("CarGame.Car", {}, {
     },
     Accelerate: function (deltaTime, direction)
     {
-        // Eğer motor maksimum devir sayısına ulaşmadıysa, devir sayısını uygun formüle göre arttırıyoruz
+        // Eğer tekerleklerin asfalt zeminin dışına çıkması sebebiyle uygulanan hız limitine ulaşılmadıysa ve
+        // motor maksimum devir sayısına ulaşmadıysa, devir sayısını uygun formüle göre arttırıyoruz
         // Gaza basıldığı takdirde, aracın hızını arttırmıyoruz. Gerçek dünyada olduğu gibi, motor devrini arttırıyoruz
         // Sonradan motor devrine ve vitese göre hız hesaplanıyor
-        if (this.EngineCycle < this.EngineSpecs.MaxCycle)
+        if (this.Speed < this.MaxOffRoadSpeed)
         {
-            var shift;
-
-            if (this.Shift == -1)
+            if (this.EngineCycle < this.EngineSpecs.MaxCycle)
             {
-                // Geriye doğru motor devri ivmelenme formülü
-                this.EngineCycle += Math.round((5000 * this.ShiftSpecs[0].ShiftRate * this.ShiftSpecs[0].ShiftRate / (2000 + this.EngineCycle)) * deltaTime);
+                var shift;
+
+                if (this.Shift == -1)
+                {
+                    // Geriye doğru motor devri ivmelenme formülü
+                    this.EngineCycle += Math.round((5000 * this.ShiftSpecs[0].ShiftRate * this.ShiftSpecs[0].ShiftRate / (2000 + this.EngineCycle)) * deltaTime);
+                }
+                else
+                {
+                    // İleriye doğru motor devri ivmelenme formülü
+                    this.EngineCycle += Math.round((5000 * this.ShiftSpecs[this.Shift].ShiftRate * this.ShiftSpecs[this.Shift].ShiftRate / (2000 + this.EngineCycle * this.Shift)) * deltaTime);
+                }
             }
             else
             {
-                // İleriye doğru motor devri ivmelenme formülü
-                this.EngineCycle += Math.round((5000 * this.ShiftSpecs[this.Shift].ShiftRate * this.ShiftSpecs[this.Shift].ShiftRate / (2000 + this.EngineCycle * this.Shift)) * deltaTime);
+                // Motorun maksimum devir sayısını geçmesini engelliyoruz
+                this.EngineCycle = this.EngineSpecs.MaxCycle;
             }
-        }
-        else
-        {
-            // Motorun maksimum devir sayısını geçmesini engelliyoruz
-            this.EngineCycle = this.EngineSpecs.MaxCycle;
         }
     },
     Break: function (deltaTime, direction)
@@ -558,6 +575,90 @@ can.Construct("CarGame.Car", {}, {
         {
             // Arabanın kendi kendine yavaşlama formülü
             this.EngineCycle -= Math.round(700 * deltaTime);
+        }
+    },
+    CheckOnRoad: function (deltaTime)
+    {
+        // Dört tekerlek modeli de yüklendiyse, tekerleklerin yolun dışına çıkıp çıkmadığı testini yapıyoruz
+        if (this.FrontLeftWheel != null && this.FrontRightWheel != null && this.BackLeftWheel != null && this.BackRightWheel != null)
+        {
+            // Ray Casting masraflı bir işlem olduğu için, bu işlemi saniyede 60 kere değil, 0.5 saniyede bir kez gerçekleştiriyoruz
+            if (this.CheckOnRoadDeltaTime < 0.5)
+            {
+                this.CheckOnRoadDeltaTime += deltaTime;
+
+                return;
+            }
+
+            this.CheckOnRoadDeltaTime = 0;
+
+            // Bunun için ilk olarak dört tekerleğin de merkez noktasını buluyoruz
+            var frontLeftWheelCenterPoint = this.FrontLeftWheel.localToWorld(this.FrontLeftWheel.position.clone());
+            var frontRightWheelCenterPoint = this.FrontRightWheel.localToWorld(this.FrontRightWheel.position.clone());
+            var backLeftWheelCenterPoint = this.BackLeftWheel.localToWorld(this.BackLeftWheel.position.clone());
+            var backRightWheelCenterPoint = this.BackRightWheel.localToWorld(this.BackRightWheel.position.clone());
+
+            // Ardından dört tekerlek için de, dikey eksende 1 metre daha aşağıda birer nokta daha tanımlıyoruz
+            var frontLeftWheelBottomPoint = new THREE.Vector3(frontLeftWheelCenterPoint.x, frontLeftWheelCenterPoint.y - 1, frontLeftWheelCenterPoint.z);
+            var frontRightWheelBottomPoint = new THREE.Vector3(frontRightWheelCenterPoint.x, frontRightWheelCenterPoint.y - 1, frontRightWheelCenterPoint.z);
+            var backLeftWheelBottomPoint = new THREE.Vector3(backLeftWheelCenterPoint.x, backLeftWheelCenterPoint.y - 1, backLeftWheelCenterPoint.z);
+            var backRightWheelBottomPoint = new THREE.Vector3(backRightWheelCenterPoint.x, backRightWheelCenterPoint.y - 1, backRightWheelCenterPoint.z);
+
+            // Tanımlanan noktalar arasında aşağı yönlü dört adet doğru çiziyoruz
+            var frontLeftWheelRay = new THREE.Raycaster(frontLeftWheelCenterPoint, frontLeftWheelBottomPoint.sub(frontLeftWheelCenterPoint).clone().normalize());
+            var frontRightWheelRay = new THREE.Raycaster(frontRightWheelCenterPoint, frontRightWheelBottomPoint.sub(frontRightWheelCenterPoint).clone().normalize());
+            var backLeftWheelRay = new THREE.Raycaster(backLeftWheelCenterPoint, backLeftWheelBottomPoint.sub(backLeftWheelCenterPoint).clone().normalize());
+            var backRightWheelRay = new THREE.Raycaster(backRightWheelCenterPoint, backRightWheelBottomPoint.sub(backRightWheelCenterPoint).clone().normalize());
+
+            // Çizilen doğruların asfalt zemini kesip kesmediğini kontrol ediyoruz
+            // Eğer bir doğru asfalt zemini kesmiyorsa, doğrunun merkezinden geçtiği tekerlek de asfalt zeminin üzerinde değil demektir
+            var intersectObjectWithFrontLeftWheel = frontLeftWheelRay.intersectObject(this.ground.RaceTrackRoad);
+            var intersectObjectWithFrontRightWheelRay = frontRightWheelRay.intersectObject(this.ground.RaceTrackRoad);
+            var intersectObjectWithBackLeftWheelRay = backLeftWheelRay.intersectObject(this.ground.RaceTrackRoad);
+            var intersectObjectWithBackRightWheelRay = backRightWheelRay.intersectObject(this.ground.RaceTrackRoad);
+
+            // Asfalt zemin üzerinde bulunmayan tekerlek sayısını buluyoruz
+            var offRoadWheelCount = 0;
+
+            if (intersectObjectWithFrontLeftWheel.length == 0)
+            {
+                offRoadWheelCount++;
+            }
+
+            if (intersectObjectWithFrontRightWheelRay.length == 0)
+            {
+                offRoadWheelCount++;
+            }
+
+            if (intersectObjectWithBackLeftWheelRay.length == 0)
+            {
+                offRoadWheelCount++;
+            }
+
+            if (intersectObjectWithBackRightWheelRay.length == 0)
+            {
+                offRoadWheelCount++;
+            }
+
+            // Asfalt zemin üzerinde bulunmayan tekerlek sayısına göre arabanın ulaşabileceği maksimum hız limitini belirliyoruz
+            switch (offRoadWheelCount)
+            {
+                case 0:
+                    this.MaxOffRoadSpeed = 9999;
+                    break;
+                case 1:
+                    this.MaxOffRoadSpeed = 125;
+                    break;
+                case 2:
+                    this.MaxOffRoadSpeed = 100;
+                    break;
+                case 3:
+                    this.MaxOffRoadSpeed = 75;
+                    break;
+                case 4:
+                    this.MaxOffRoadSpeed = 50;
+                    break;
+            }
         }
     },
     CheckShiftChange: function ()
