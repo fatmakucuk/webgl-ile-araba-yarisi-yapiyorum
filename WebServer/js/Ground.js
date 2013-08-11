@@ -6,9 +6,10 @@ can.Construct("CarGame.Ground", {}, {
     Element: null,
     RaceTrackGrass: null,
     RaceTrackRoad: null,
+    RaceTrackBarrier: null,
 
     // Yüklemesi beklenen model sayısı
-    RemainingModelCount: 2,
+    RemainingModelCount: 3,
 
     init: function ()
     {
@@ -22,6 +23,8 @@ can.Construct("CarGame.Ground", {}, {
         // Yarış pistinin yol modelini yüklüyoruz
         jsonLoader.load("models/RaceTrackRoad.js", this.RaceTrackRoadModelLoaded, "texture");
 
+        // Yarış pistinin bariyer modelini yüklüyoruz
+        jsonLoader.load("models/RaceTrackBarrier.js", this.RaceTrackBarrierModelLoaded, "texture");
     },
     RaceTrackGrassModelLoaded: function (geometry, materials)
     {
@@ -54,6 +57,22 @@ can.Construct("CarGame.Ground", {}, {
         this.ground.RaceTrackRoad.receiveShadow = true;
         
         this.ground.Element.add(this.ground.RaceTrackRoad);
+
+        // Yüklemesi beklenen model sayısını bir azaltıyoruz
+        this.ground.RemainingModelCount--
+    },
+    RaceTrackBarrierModelLoaded: function (geometry, materials)
+    {
+        // RaceTrackBarrier.js dosyasının yüklenmesi tamamlandığı zaman bu metot işletilir
+        // Yüklenen modeli nesnemize ekliyoruz
+        var material = new THREE.MeshFaceMaterial(materials);
+
+        this.ground.RaceTrackBarrier = new THREE.Mesh(geometry, material);
+
+        // Yüzeyin üzerine gölge düşeceğini belirtiyoruz
+        this.ground.RaceTrackBarrier.receiveShadow = true;
+
+        this.ground.Element.add(this.ground.RaceTrackBarrier);
 
         // Yüklemesi beklenen model sayısını bir azaltıyoruz
         this.ground.RemainingModelCount--
