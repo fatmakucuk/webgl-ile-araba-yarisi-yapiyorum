@@ -103,6 +103,8 @@ can.Construct("CarGame.Scene", {}, {
         KeyboardHint.append("<br>");
         KeyboardHint.append("d : Gündüz ışıklandırması<br>");
         KeyboardHint.append("n : Gece ışıklandırması<br>");
+        KeyboardHint.append("<br>");
+        KeyboardHint.append("F11 : Tam ekran<br>");
     },
     AddTachometer: function ()
     {
@@ -112,7 +114,7 @@ can.Construct("CarGame.Scene", {}, {
         var Tachometer = $("#Tachometer");
 
         Tachometer.css("position", "absolute");
-        Tachometer.css("left", (window.innerWidth - 120) + "px");
+        Tachometer.css("left", "90%");
         Tachometer.css("top", "20px");
         Tachometer.css("color", "#ffff00");
     },
@@ -124,7 +126,7 @@ can.Construct("CarGame.Scene", {}, {
         var Speedometer = $("#Speedometer");
 
         Speedometer.css("position", "absolute");
-        Speedometer.css("left", (window.innerWidth - 120) + "px");
+        Speedometer.css("left", "90%");
         Speedometer.css("top", "50px");
         Speedometer.css("color", "#ffff00");
     },
@@ -136,7 +138,7 @@ can.Construct("CarGame.Scene", {}, {
         var ShiftIndicator = $("#ShiftIndicator");
 
         ShiftIndicator.css("position", "absolute");
-        ShiftIndicator.css("left", (window.innerWidth - 120) + "px");
+        ShiftIndicator.css("left", "90%");
         ShiftIndicator.css("top", "80px");
         ShiftIndicator.css("color", "#ffff00");
     },

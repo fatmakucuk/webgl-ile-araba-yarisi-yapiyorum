@@ -34,6 +34,17 @@ can.Construct("CarGame.Car", {}, {
     LEFT: 3,
     RIGHT: 4,
 
+    // Arabanın çarpışma denetimi yapılacak noktaları
+    CenterPoint: new THREE.Vector3(0, -1, -1.5),
+    FrontPoint: new THREE.Vector3(0, -1, -5),
+    FrontLeftPoint: new THREE.Vector3(-1.05, -1, -2.8),
+    FrontRightPoint: new THREE.Vector3(1.05, -1, -2.8),
+    BackPoint: new THREE.Vector3(0, -1, 0.8),
+    BackLeftPoint: new THREE.Vector3(-1.2, -1, 0.4),
+    BackRightPoint: new THREE.Vector3(1.2, -1, 0.4),
+    LeftPoint: new THREE.Vector3(-0.95, -1, -1.5),
+    RightPoint: new THREE.Vector3(0.95, -1, -1.5),
+
     // Yüklemesi beklenen model sayısı
     RemainingModelCount: 5,
 
@@ -61,6 +72,9 @@ can.Construct("CarGame.Car", {}, {
 
     // Son asfalt zemin kontrolünden bu yana geçen süre
     CheckOnRoadDeltaTime: 0,
+
+    // Son bariyer çarpma kontrolünden bu yana geçen süre
+    CheckBarrierCollisionDeltaTime: 0,
 
     // Arabanın motor bilgileri
     // Şimdilik sadece max. devir değerini barındırıyor
@@ -325,6 +339,9 @@ can.Construct("CarGame.Car", {}, {
         // Arabanın dört tekerleğinin de yolda olup olmadığını kontrol ettiriyoruz
         this.CheckOnRoad(deltaTime);
 
+        // Arabanın bariyere çarpıp çarpmadığını kontrol ettiriyoruz
+        this.CheckBarrierCollision(deltaTime);
+
         // Bir önceki animasyon akışında fren ışığı yanıyorsa söndürüyoruz
         this.TurnBreakLightOff();
 
@@ -579,86 +596,219 @@ can.Construct("CarGame.Car", {}, {
     },
     CheckOnRoad: function (deltaTime)
     {
-        // Dört tekerlek modeli de yüklendiyse, tekerleklerin yolun dışına çıkıp çıkmadığı testini yapıyoruz
-        if (this.FrontLeftWheel != null && this.FrontRightWheel != null && this.BackLeftWheel != null && this.BackRightWheel != null)
+        // Tekerleklerin yolun dışına çıkıp çıkmadığı testini yapmak için dört tekerlek modelinin de yüklenip yüklenmediğini kontrol ediyoruz
+        if (this.FrontLeftWheel == null || this.FrontRightWheel == null || this.BackLeftWheel == null || this.BackRightWheel == null)
         {
-            // Ray Casting masraflı bir işlem olduğu için, bu işlemi saniyede 60 kere değil, 0.5 saniyede bir kez gerçekleştiriyoruz
-            if (this.CheckOnRoadDeltaTime < 0.5)
+            return;
+        }
+
+        // Ray Casting masraflı bir işlem olduğu için, bu işlemi saniyede 60 kere değil, 0.5 saniyede bir kez gerçekleştiriyoruz
+        if (this.CheckOnRoadDeltaTime < 0.5)
+        {
+            this.CheckOnRoadDeltaTime += deltaTime;
+
+            return;
+        }
+
+        this.CheckOnRoadDeltaTime = 0;
+
+        // Bunun için ilk olarak dört tekerleğin de merkez noktasını buluyoruz
+        var frontLeftWheelCenterPoint = this.FrontLeftWheel.localToWorld(this.FrontLeftWheel.position.clone());
+        var frontRightWheelCenterPoint = this.FrontRightWheel.localToWorld(this.FrontRightWheel.position.clone());
+        var backLeftWheelCenterPoint = this.BackLeftWheel.localToWorld(this.BackLeftWheel.position.clone());
+        var backRightWheelCenterPoint = this.BackRightWheel.localToWorld(this.BackRightWheel.position.clone());
+
+        // Ardından dört tekerlek için de, dikey eksende 1 metre daha aşağıda birer nokta daha tanımlıyoruz
+        var frontLeftWheelBottomPoint = new THREE.Vector3(frontLeftWheelCenterPoint.x, frontLeftWheelCenterPoint.y - 1, frontLeftWheelCenterPoint.z);
+        var frontRightWheelBottomPoint = new THREE.Vector3(frontRightWheelCenterPoint.x, frontRightWheelCenterPoint.y - 1, frontRightWheelCenterPoint.z);
+        var backLeftWheelBottomPoint = new THREE.Vector3(backLeftWheelCenterPoint.x, backLeftWheelCenterPoint.y - 1, backLeftWheelCenterPoint.z);
+        var backRightWheelBottomPoint = new THREE.Vector3(backRightWheelCenterPoint.x, backRightWheelCenterPoint.y - 1, backRightWheelCenterPoint.z);
+
+        // Tanımlanan noktalar arasında aşağı yönlü dört adet doğru çiziyoruz
+        var frontLeftWheelRay = new THREE.Raycaster(frontLeftWheelCenterPoint, frontLeftWheelBottomPoint.sub(frontLeftWheelCenterPoint).clone().normalize());
+        var frontRightWheelRay = new THREE.Raycaster(frontRightWheelCenterPoint, frontRightWheelBottomPoint.sub(frontRightWheelCenterPoint).clone().normalize());
+        var backLeftWheelRay = new THREE.Raycaster(backLeftWheelCenterPoint, backLeftWheelBottomPoint.sub(backLeftWheelCenterPoint).clone().normalize());
+        var backRightWheelRay = new THREE.Raycaster(backRightWheelCenterPoint, backRightWheelBottomPoint.sub(backRightWheelCenterPoint).clone().normalize());
+
+        // Çizilen doğruların asfalt zemini kesip kesmediğini kontrol ediyoruz
+        // Eğer bir doğru asfalt zemini kesmiyorsa, doğrunun merkezinden geçtiği tekerlek de asfalt zeminin üzerinde değil demektir
+        var intersectObjectWithFrontLeftWheel = frontLeftWheelRay.intersectObject(this.ground.RaceTrackRoad);
+        var intersectObjectWithFrontRightWheelRay = frontRightWheelRay.intersectObject(this.ground.RaceTrackRoad);
+        var intersectObjectWithBackLeftWheelRay = backLeftWheelRay.intersectObject(this.ground.RaceTrackRoad);
+        var intersectObjectWithBackRightWheelRay = backRightWheelRay.intersectObject(this.ground.RaceTrackRoad);
+
+        // Asfalt zemin üzerinde bulunmayan tekerlek sayısını buluyoruz
+        var offRoadWheelCount = 0;
+
+        if (intersectObjectWithFrontLeftWheel.length == 0)
+        {
+            offRoadWheelCount++;
+        }
+
+        if (intersectObjectWithFrontRightWheelRay.length == 0)
+        {
+            offRoadWheelCount++;
+        }
+
+        if (intersectObjectWithBackLeftWheelRay.length == 0)
+        {
+            offRoadWheelCount++;
+        }
+
+        if (intersectObjectWithBackRightWheelRay.length == 0)
+        {
+            offRoadWheelCount++;
+        }
+
+        // Asfalt zemin üzerinde bulunmayan tekerlek sayısına göre arabanın ulaşabileceği maksimum hız limitini belirliyoruz
+        switch (offRoadWheelCount)
+        {
+            case 0:
+                this.MaxOffRoadSpeed = 9999;
+                break;
+            case 1:
+                this.MaxOffRoadSpeed = 125;
+                break;
+            case 2:
+                this.MaxOffRoadSpeed = 100;
+                break;
+            case 3:
+                this.MaxOffRoadSpeed = 75;
+                break;
+            case 4:
+                this.MaxOffRoadSpeed = 50;
+                break;
+        }
+    },
+    CheckBarrierCollision: function (deltaTime)
+    {
+        // Ray Casting masraflı bir işlem olduğu için, bu işlemi saniyede 60 kere değil, 0.05 saniyede bir kez gerçekleştiriyoruz
+        if (this.CheckBarrierCollisionDeltaTime < 0.05)
+        {
+            this.CheckBarrierCollisionDeltaTime += deltaTime;
+
+            return;
+        }
+
+        this.CheckBarrierCollisionDeltaTime = 0;
+
+        // Çarpışmayı denetlemek için öncelikle arabada önceden seçtiğimiz dokuz noktanın global koordinat değerlerini buluyoruz
+        var centerPoint = this.Element.localToWorld(this.CenterPoint.clone());
+        var frontPoint = this.Element.localToWorld(this.FrontPoint.clone());
+        var frontLeftPoint = this.Element.localToWorld(this.FrontLeftPoint.clone());
+        var frontRightPoint = this.Element.localToWorld(this.FrontRightPoint.clone());
+        var backPoint = this.Element.localToWorld(this.BackPoint.clone());
+        var backLeftPoint = this.Element.localToWorld(this.BackLeftPoint.clone());
+        var backRightPoint = this.Element.localToWorld(this.BackRightPoint.clone());
+        var leftPoint = this.Element.localToWorld(this.LeftPoint.clone());
+        var rightPoint = this.Element.localToWorld(this.RightPoint.clone());
+
+        // 8 yön için doğrultu vektörleri tanımlıyoruz
+        var frontPointDirectionVector = frontPoint.sub(centerPoint);
+        var frontLeftPointDirectionVector = frontLeftPoint.sub(centerPoint);
+        var frontRightPointDirectionVector = frontRightPoint.sub(centerPoint);
+        var backPointDirectionVector = backPoint.sub(centerPoint);
+        var backLeftPointDirectionVector = backLeftPoint.sub(centerPoint);
+        var backRightPointDirectionVector = backRightPoint.sub(centerPoint);
+        var leftPointDirectionVector = leftPoint.sub(centerPoint);
+        var rightPointDirectionVector = rightPoint.sub(centerPoint);
+
+        // Arabanın merkezinden 8 yöne doğrular çiziyoruz
+        var frontPointRay = new THREE.Raycaster(centerPoint, frontPointDirectionVector.clone().normalize());
+        var frontLeftPointRay = new THREE.Raycaster(centerPoint, frontLeftPointDirectionVector.clone().normalize());
+        var frontRightPointRay = new THREE.Raycaster(centerPoint, frontRightPointDirectionVector.clone().normalize());
+        var backPointRay = new THREE.Raycaster(centerPoint, backPointDirectionVector.clone().normalize());
+        var backLeftPointRay = new THREE.Raycaster(centerPoint, backLeftPointDirectionVector.clone().normalize());
+        var backRightPointRay = new THREE.Raycaster(centerPoint, backRightPointDirectionVector.clone().normalize());
+        var leftPointRay = new THREE.Raycaster(centerPoint, leftPointDirectionVector.clone().normalize());
+        var rightPointRay = new THREE.Raycaster(centerPoint, rightPointDirectionVector.clone().normalize());
+
+        // Çizilen doğruların bariyer ile kesişme noktasını buluyoruz
+        var intersectObjectWithFrontPointRay = frontPointRay.intersectObject(this.ground.RaceTrackBarrier);
+        var intersectObjectWithFrontLeftPointRay = frontLeftPointRay.intersectObject(this.ground.RaceTrackBarrier);
+        var intersectObjectWithFrontRightPointRay = frontRightPointRay.intersectObject(this.ground.RaceTrackBarrier);
+        var intersectObjectWithBackPointRay = backPointRay.intersectObject(this.ground.RaceTrackBarrier);
+        var intersectObjectWithBackLeftPointRay = backLeftPointRay.intersectObject(this.ground.RaceTrackBarrier);
+        var intersectObjectWithBackRightPointRay = backRightPointRay.intersectObject(this.ground.RaceTrackBarrier);
+        var intersectObjectWithLeftPointRay = leftPointRay.intersectObject(this.ground.RaceTrackBarrier);
+        var intersectObjectWithRightPointRay = rightPointRay.intersectObject(this.ground.RaceTrackBarrier);
+
+
+        // Eğer kesişme mesafesi, merkez ile seçilen nokta mesafesinden küçük veya eşitse, çarpışma yaşanmıştır kabul ediyoruz ve gerekli aksiyonları alıyoruz
+
+        // Ön tampona çarptıysa vitesi geriye alıp, devri yarıya düşürüyoruz. Bu bize geri sekme görüntüsü sağlayacak
+        if (intersectObjectWithFrontPointRay.length > 0 && intersectObjectWithFrontPointRay[0].distance <= frontPointDirectionVector.length())
+        {
+            if (this.Speed > 0)
             {
-                this.CheckOnRoadDeltaTime += deltaTime;
-
-                return;
+                this.Shift = -1;
             }
+        }
 
-            this.CheckOnRoadDeltaTime = 0;
-
-            // Bunun için ilk olarak dört tekerleğin de merkez noktasını buluyoruz
-            var frontLeftWheelCenterPoint = this.FrontLeftWheel.localToWorld(this.FrontLeftWheel.position.clone());
-            var frontRightWheelCenterPoint = this.FrontRightWheel.localToWorld(this.FrontRightWheel.position.clone());
-            var backLeftWheelCenterPoint = this.BackLeftWheel.localToWorld(this.BackLeftWheel.position.clone());
-            var backRightWheelCenterPoint = this.BackRightWheel.localToWorld(this.BackRightWheel.position.clone());
-
-            // Ardından dört tekerlek için de, dikey eksende 1 metre daha aşağıda birer nokta daha tanımlıyoruz
-            var frontLeftWheelBottomPoint = new THREE.Vector3(frontLeftWheelCenterPoint.x, frontLeftWheelCenterPoint.y - 1, frontLeftWheelCenterPoint.z);
-            var frontRightWheelBottomPoint = new THREE.Vector3(frontRightWheelCenterPoint.x, frontRightWheelCenterPoint.y - 1, frontRightWheelCenterPoint.z);
-            var backLeftWheelBottomPoint = new THREE.Vector3(backLeftWheelCenterPoint.x, backLeftWheelCenterPoint.y - 1, backLeftWheelCenterPoint.z);
-            var backRightWheelBottomPoint = new THREE.Vector3(backRightWheelCenterPoint.x, backRightWheelCenterPoint.y - 1, backRightWheelCenterPoint.z);
-
-            // Tanımlanan noktalar arasında aşağı yönlü dört adet doğru çiziyoruz
-            var frontLeftWheelRay = new THREE.Raycaster(frontLeftWheelCenterPoint, frontLeftWheelBottomPoint.sub(frontLeftWheelCenterPoint).clone().normalize());
-            var frontRightWheelRay = new THREE.Raycaster(frontRightWheelCenterPoint, frontRightWheelBottomPoint.sub(frontRightWheelCenterPoint).clone().normalize());
-            var backLeftWheelRay = new THREE.Raycaster(backLeftWheelCenterPoint, backLeftWheelBottomPoint.sub(backLeftWheelCenterPoint).clone().normalize());
-            var backRightWheelRay = new THREE.Raycaster(backRightWheelCenterPoint, backRightWheelBottomPoint.sub(backRightWheelCenterPoint).clone().normalize());
-
-            // Çizilen doğruların asfalt zemini kesip kesmediğini kontrol ediyoruz
-            // Eğer bir doğru asfalt zemini kesmiyorsa, doğrunun merkezinden geçtiği tekerlek de asfalt zeminin üzerinde değil demektir
-            var intersectObjectWithFrontLeftWheel = frontLeftWheelRay.intersectObject(this.ground.RaceTrackRoad);
-            var intersectObjectWithFrontRightWheelRay = frontRightWheelRay.intersectObject(this.ground.RaceTrackRoad);
-            var intersectObjectWithBackLeftWheelRay = backLeftWheelRay.intersectObject(this.ground.RaceTrackRoad);
-            var intersectObjectWithBackRightWheelRay = backRightWheelRay.intersectObject(this.ground.RaceTrackRoad);
-
-            // Asfalt zemin üzerinde bulunmayan tekerlek sayısını buluyoruz
-            var offRoadWheelCount = 0;
-
-            if (intersectObjectWithFrontLeftWheel.length == 0)
+        // Sol-ön kısma çarptıysa arabayı hafif sağa taşıyor ve sağa döndürüyoruz
+        if (intersectObjectWithFrontLeftPointRay.length > 0 && intersectObjectWithFrontLeftPointRay[0].distance <= frontLeftPointDirectionVector.length())
+        {
+            if (this.Speed > 0)
             {
-                offRoadWheelCount++;
-            }
+                this.Element.translateX(0.05);
 
-            if (intersectObjectWithFrontRightWheelRay.length == 0)
-            {
-                offRoadWheelCount++;
+                this.Element.rotateOnAxis(new THREE.Vector3(0, 1, 0), -1 * Math.PI / 60);
             }
+        }
 
-            if (intersectObjectWithBackLeftWheelRay.length == 0)
+        // Sağ-ön kısma çarptıysa arabayı hafif sola taşıyor ve sola  döndürüyoruz
+        if (intersectObjectWithFrontRightPointRay.length > 0 && intersectObjectWithFrontRightPointRay[0].distance <= frontRightPointDirectionVector.length())
+        {
+            if (this.Speed > 0)
             {
-                offRoadWheelCount++;
-            }
+                this.Element.translateX(-0.05);
 
-            if (intersectObjectWithBackRightWheelRay.length == 0)
-            {
-                offRoadWheelCount++;
+                this.Element.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 60);
             }
+        }
 
-            // Asfalt zemin üzerinde bulunmayan tekerlek sayısına göre arabanın ulaşabileceği maksimum hız limitini belirliyoruz
-            switch (offRoadWheelCount)
+        // Arka tampona çarptıysa vitesi bire alıp, devri yarıya düşürüyoruz. Bu bize geri sekme görüntüsü sağlayacak
+        if (intersectObjectWithBackPointRay.length > 0 && intersectObjectWithBackPointRay[0].distance <= backPointDirectionVector.length())
+        {
+            if (this.Speed < 0)
             {
-                case 0:
-                    this.MaxOffRoadSpeed = 9999;
-                    break;
-                case 1:
-                    this.MaxOffRoadSpeed = 125;
-                    break;
-                case 2:
-                    this.MaxOffRoadSpeed = 100;
-                    break;
-                case 3:
-                    this.MaxOffRoadSpeed = 75;
-                    break;
-                case 4:
-                    this.MaxOffRoadSpeed = 50;
-                    break;
+                this.Shift = 1;
+                this.EngineCycle /= 2;
             }
+        }
+
+        // Sol-arka kısma çarptıysa arabayı hafif sola taşıyor ve sola  döndürüyoruz
+        if (intersectObjectWithBackLeftPointRay.length > 0 && intersectObjectWithBackLeftPointRay[0].distance <= backLeftPointDirectionVector.length())
+        {
+            if (this.Speed < 0)
+            {
+                this.Element.translateX(-0.05);
+
+                this.Element.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 60);
+            }
+        }
+
+        // Sağ-arka kısma çarptıysa arabayı hafif sağa taşıyor ve sağa döndürüyoruz
+        if (intersectObjectWithBackRightPointRay.length > 0 && intersectObjectWithBackRightPointRay[0].distance <= backRightPointDirectionVector.length())
+        {
+            if (this.Speed < 0)
+            {
+                this.Element.translateX(0.05);
+
+                this.Element.rotateOnAxis(new THREE.Vector3(0, 1, 0), -1 * Math.PI / 60);
+            }
+        }
+
+        // Sol kısma çarptıysa arabayı hafif sağa taşıyoruz
+        if (intersectObjectWithLeftPointRay.length > 0 && intersectObjectWithLeftPointRay[0].distance <= leftPointDirectionVector.length())
+        {
+            this.Element.translateX(0.1);
+        }
+
+        // Sağ kısma çarptıysa arabayı hafif sola taşıyoruz
+        if (intersectObjectWithRightPointRay.length > 0 && intersectObjectWithRightPointRay[0].distance <= rightPointDirectionVector.length())
+        {
+            this.Element.translateX(-0.1);
         }
     },
     CheckShiftChange: function ()
@@ -756,19 +906,19 @@ can.Construct("CarGame.Car", {}, {
             var angle = this.FrontWheelAngle * 2 * deltaTime;
 
             // Suni dönüş görüntüsünü engellemek için çok düşük hızlarda dönüş açısını kademeli olarak düşürüyoruz
-            if (this.Speed < 5)
+            if (Math.abs(this.Speed) < 5)
             {
                 angle /= 4;
             }
-            else if (this.Speed < 10)
+            else if (Math.abs(this.Speed) < 10)
             {
                 angle /= 2;
             }
-            else if (this.Speed < 20)
+            else if (Math.abs(this.Speed) < 20)
             {
                 angle /= 1.5;
             }
-            else if (this.Speed < 30)
+            else if (Math.abs(this.Speed) < 30)
             {
                 angle /= 1.2;
             }
@@ -822,19 +972,19 @@ can.Construct("CarGame.Car", {}, {
             var angle = this.FrontWheelAngle * 2 * deltaTime;
 
             // Suni dönüş görüntüsünü engellemek için çok düşük hızlarda dönüş açısını kademeli olarak düşürüyoruz
-            if (this.Speed < 5)
+            if (Math.abs(this.Speed) < 5)
             {
                 angle /= 4;
             }
-            else if (this.Speed < 10)
+            else if (Math.abs(this.Speed) < 10)
             {
                 angle /= 2;
             }
-            else if (this.Speed < 20)
+            else if (Math.abs(this.Speed) < 20)
             {
                 angle /= 1.5;
             }
-            else if (this.Speed < 30)
+            else if (Math.abs(this.Speed) < 30)
             {
                 angle /= 1.2;
             }
