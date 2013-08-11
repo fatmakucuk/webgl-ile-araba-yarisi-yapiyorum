@@ -70,25 +70,43 @@
     <Content Include="libs\Stats.js" />
     <Content Include="libs\three.min.js" />
     <Content Include="libs\threex.KeyboardState.js" />
+    <Content Include="libs\threex.WindowResize.js" />
+    <Content Include="models\BackLight.js" />
     <Content Include="models\CarBody.js" />
+    <Content Include="models\CarBreak.js" />
     <Content Include="models\CarWheel.js" />
+    <Content Include="models\FrontLight.js" />
+    <Content Include="models\RaceTrackBarrier.js" />
+    <Content Include="models\RaceTrackGrass.js" />
+    <Content Include="models\RaceTrackRoad.js" />
     <Content Include="resources\asphalt.png" />
+    <Content Include="resources\CarBody.blend" />
+    <Content Include="resources\CarBreak.blend" />
+    <Content Include="resources\CarWheel.blend" />
     <Content Include="resources\clouds.jpg" />
     <Content Include="resources\grass.jpg" />
+    <Content Include="resources\RaceTrack.blend" />
+    <Content Include="resources\texture\asphalt.png" />
+    <Content Include="resources\texture\clouds.jpg" />
+    <Content Include="resources\texture\grass.jpg" />
+    <Content Include="resources\texture\rubber.jpg" />
     <Content Include="texture\asphalt.png" />
     <Content Include="texture\clouds.jpg" />
     <Content Include="texture\grass.jpg" />
+    <Content Include="texture\rubber.jpg" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="resources\CarBreak.blend" />
-    <Content Include="resources\RaceTrack.blend" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="resources\CarBody.blend" />
-    <Content Include="resources\CarWheel.blend" />
+    <Content Include="resources\blender\BackLight.blend" />
+    <Content Include="resources\blender\CarBody.blend" />
+    <Content Include="resources\blender\CarBreak.blend" />
+    <Content Include="resources\blender\CarWheel.blend" />
+    <Content Include="resources\blender\FrontLight.blend" />
+    <Content Include="resources\blender\RaceTrackBarrier.blend" />
+    <Content Include="resources\blender\RaceTrackGrass.blend" />
+    <Content Include="resources\blender\RaceTrackRoad.blend" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

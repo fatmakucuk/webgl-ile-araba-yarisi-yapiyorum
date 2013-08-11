@@ -6,6 +6,7 @@
 <script src="libs/can.jquery.min.js"></script>
 <script src="libs/three.min.js"></script>
 <script src="libs/threex.KeyboardState.js"></script>
+<script src="libs/threex.WindowResize.js"></script>
 <script src="libs/RequestAnimationFrame.js"></script>
 <script src="libs/Stats.js"></script>
 <script src="js/Scene.js"></script>
@@ -38,7 +39,7 @@
         light = new CarGame.Light();
 
         scene.Add(light);
-        
+
 
         // 3D dünyamızın sınırlarını belirleyen küpümüzü sahneye ekliyoruz
         skyBox = new CarGame.SkyBox();
@@ -61,6 +62,9 @@
         // Klavyenin durumunu yansıtan nesnemizi tanımlıyoruz
         keyboardState = new THREEx.KeyboardState();
 
+        // Tarayıcı penceresinin yeniden boyutlanması durumunda Render edilecek yüzeyi yeniden boyutlandırıyoruz
+        THREEx.WindowResize(scene.Renderer, camera.Element);
+
         // Tüm modeller yüklendiğinde Splash Screen'in kaldırılmasını istiyoruz
         RemoveSplashScreen();
 
@@ -81,7 +85,6 @@
         // Işığımıza, klavyenin ve arabanın durumuna göre gerekli aksiyonları almasını söylüyoruz
         light.Animate(keyboardState, car);
 
-        
         // Asıl ve dikiz aynası kameraları gözünden sahnemizi Render ettiriyoruz
         scene.Render(camera.Element, car.RearMirrorCamera);
 
